@@ -1,0 +1,9 @@
+"0","```r
+# Personeria juridica
+
+base <- base %>% 
+  mutate(personeria_rec = case_when(tiene_personeria_juridica == \"Si\" ~ \"Si\",
+                                    tiene_personeria_juridica == \"No\" ~ \"No\",
+                                    tiene_personeria_juridica == \"Irregular\" ~ \"No\",
+                                    tiene_personeria_juridica == \"En tramite\" ~ \"No\"))
+```"

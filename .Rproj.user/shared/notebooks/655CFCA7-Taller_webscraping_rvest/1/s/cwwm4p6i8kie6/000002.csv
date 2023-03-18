@@ -1,0 +1,28 @@
+"0","```r
+```r
+porReproducciones <- spotify %>% 
+  group_by(Cancion) %>%
+  summarise(totalReproducciones = sum(Reproducciones)) %>% 
+  arrange(desc(totalReproducciones)) %>%
+  top_n(10)
+```
+```"
+"1","Selecting by totalReproducciones
+"
+"0","```r
+```r
+#Esta linea saca los feat en parentesis para mejorar el grafico
+#porReproducciones <-  porReproducciones %>% mutate( Cancion = gsub(\\\s*\\([^\\)]+\\)\,\\,Cancion))
+
+porReproducciones %>%
+  ggplot(aes(reorder(Cancion, totalReproducciones), y = totalReproducciones)) +
+  geom_col(fill = \sky blue\) +
+  #geom_label_repel(aes(label = total), size = 3) +
+  coord_flip() +
+  scale_y_continuous(labels = unit_format(scale = 1, unit = \Rep\))+
+    labs(title = 'AR 2018 | Las mÃ¡s escuchadas', 
+       x = \CanciÃ³n\,
+       y = \Reproducciones\)
+
+```
+```"

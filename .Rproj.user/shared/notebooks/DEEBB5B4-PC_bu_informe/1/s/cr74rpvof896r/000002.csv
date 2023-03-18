@@ -1,0 +1,7 @@
+"0","```r
+grafico_4 <- base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  filter(ano_de_creacion_rec==\"masde10anios\" | ano_de_creacion_rec==\"5-10anios\" | ano_de_creacion_rec==\"menosde5anios\")%>%
+  dplyr::group_by(ano_de_creacion_rec, tipo_de_relacion_con_el_inmueble) %>%
+  dplyr::summarise(seleccionadxs = n_distinct(id_bu))
+```"

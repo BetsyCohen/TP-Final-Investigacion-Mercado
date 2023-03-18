@@ -1,0 +1,10 @@
+"0","```r
+# PERIODO DE INGRESO AL PROGRAMA
+
+base <- base %>% 
+  mutate(periodo_ingreso = case_when((anios_antiguedad_programa == 1 |anios_antiguedad_programa == 2) ~ \"2021-2020\",
+                                                   (anios_antiguedad_programa == 4 |anios_antiguedad_programa == 5) ~ \"2016-2017\",
+                                                   (anios_antiguedad_programa == 8 | anios_antiguedad_programa == 9 | anios_antiguedad_programa == 10) ~ \"2011-2013\"))
+                                              
+
+```"

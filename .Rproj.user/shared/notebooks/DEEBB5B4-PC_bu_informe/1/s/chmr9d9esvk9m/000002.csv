@@ -1,0 +1,14 @@
+"0","```r
+ggplot(grafico_0, aes(fill=factor(personeria_rec, levels=c(\"No\", \"Si\")), y=seleccionadxs, x=ano_de_creacion)) +
+  geom_bar(stat = \"identity\", position = \"dodge\", col='black', width=.6) +
+  scale_fill_manual(name=\"\", values = c(\"#ffce00\", \"#4fbb73\"), labels = c(\"Sin personería juridica\",\"Con personería jurídica\")) +
+    scale_y_continuous(limits=c(0, 100)) + 
+    scale_x_continuous(breaks = c(1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020)) +
+    #scale_x_discrete() +
+    labs(x=\"AÑO DE CREACION\", y=\"# ORGANIZACIONES\", title = \" Cantidad de espacios culturales comunitarios según grado de formalizacion.\n Por año de creación.\") +
+    theme(axis.title.y = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(axis.title.x = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(plot.title = element_text(size = 10, face =\"bold\", color = \"black\")) +
+    theme(legend.position=\"bottom\", legend.direction=\"horizontal\",legend.title = element_blank())
+
+```"

@@ -1,0 +1,23 @@
+"0","```r
+# CARGO LAS LIBRERIAS
+
+library(tidyverse)
+library(dplyr)
+library(janitor)
+library(stringr)
+library(readxl)
+library(openxlsx)
+library(plyr)
+library(tm)
+library(dataMeta)
+library(splitstackshape)
+library(questionr)
+library(ggthemes)
+library(plyr)
+library(scales)
+library(leaflet)
+library(leaflet.extras)
+library(rworldxtra)
+library(raster)
+library(sf)
+```"

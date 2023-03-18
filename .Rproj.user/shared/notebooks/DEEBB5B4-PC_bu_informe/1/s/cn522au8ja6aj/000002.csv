@@ -1,0 +1,11 @@
+"0","```r
+# Contexto (la intencion es hacer foco en las que no estan en zonas urbanas)
+
+base <- base %>% 
+  mutate(contexto_rec = case_when(contexto_en_el_que_se_encuentra_el_espacio_cultural == \"Zona urbana\" ~ \"Zona urbana\",
+                                  contexto_en_el_que_se_encuentra_el_espacio_cultural == \"Barrio Popular\" ~ \"Barrio popular/ zona rural\",
+                                  contexto_en_el_que_se_encuentra_el_espacio_cultural == \"Paraje/ zona rural\" ~ \"Barrio popular/ zona rural\",
+                                  contexto_en_el_que_se_encuentra_el_espacio_cultural == \"Otro\" ~ \"Barrio popular/ zona rural\"))
+
+
+```"

@@ -1,0 +1,7 @@
+"0","```r
+```r
+spotifyTemp <- read.csv(\SpotifyChartsAR2018.csv\, encoding = \latin\)
+spotifyTemp <- data.frame(lapply(spotifyTemp, as.character), stringsAsFactors=FALSE)
+spotify <- spotifyTemp[,-1] 
+```
+```"

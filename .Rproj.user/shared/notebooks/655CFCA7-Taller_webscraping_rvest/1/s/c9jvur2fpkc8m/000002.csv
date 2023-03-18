@@ -1,0 +1,25 @@
+"0","```r
+```r
+
+porArtista <- spotify %>% 
+  group_by(Artista) %>%
+  summarise(totalArtista = sum(Reproducciones)) %>% 
+  arrange(desc(totalArtista)) %>% 
+  top_n(20)
+```
+```"
+"1","Selecting by totalArtista
+"
+"0","```r
+```r
+porArtista %>%
+  ggplot(aes(reorder(Artista, totalArtista), y = totalArtista)) +
+  geom_col(fill = \sky blue\) +
+  #geom_label_repel(aes(label = TotalStreams), size = 3) +
+  coord_flip() +
+  scale_y_continuous(labels = unit_format(scale = 1, unit = \rep\))+
+  labs(title = 'AR 2018 | Artista con mÃ¡s reproducciones',
+       x = \Artistas\,
+       y = \Total Reproducciones\)
+```
+```"

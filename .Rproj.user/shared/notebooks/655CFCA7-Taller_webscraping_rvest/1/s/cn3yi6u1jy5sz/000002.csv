@@ -1,0 +1,38 @@
+"0","```r
+```r
+SpotifyChartsScrape <- function(x){
+  pagina <- x
+  posicion <- pagina %>% 
+    read_html() %>% html_nodes('.chart-table-position') %>% html_text() %>% as.data.frame()
+  cancion <- pagina %>% 
+    read_html() %>% 
+    html_nodes('strong') %>% 
+    html_text() %>% 
+    as.data.frame()
+  artista <- pagina %>% 
+    read_html() %>% 
+    html_nodes('.chart-table-track span') %>% 
+    html_text() %>% 
+    as.data.frame()
+  reproducciones <- pagina %>% 
+    read_html() %>% 
+    html_nodes('td.chart-table-streams') %>% 
+    html_text() %>% 
+    as.data.frame()
+  fecha <- pagina %>% 
+    read_html() %>% 
+    html_nodes('.responsive-select~ .responsive-select+ .responsive-select .responsive-select-value') %>%
+    html_text() %>% 
+    as.data.frame()
+    
+#combinamos posicion, cancion, artista, reproducciones, fecha y lo convertimos en un tibble
+  listaDia <- cbind(posicion, cancion, artista, reproducciones, fecha) 
+  names(listaDia) <- c(\Posicion\, \Cancion\, \Artista\, \Reproducciones\, \Fecha\) 
+  listaDia <- data.frame(lapply(listaDia, as.character), stringsAsFactors=FALSE)
+  return(listaDia)
+}
+
+#testfuncion <- SpotifyChartsScrape(urlFinal[1])
+
+```
+```"

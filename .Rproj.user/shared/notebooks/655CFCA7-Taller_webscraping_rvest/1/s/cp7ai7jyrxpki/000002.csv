@@ -1,0 +1,19 @@
+"0","```r
+```r
+porMes <- spotify %>% 
+  group_by(Mes) %>%
+  summarise(totalReproduccionesMes = sum(Reproducciones)) %>% 
+  arrange(desc(totalReproduccionesMes)) %>% 
+  print()
+```
+```r
+
+ggplot(data=porMes, aes(x=Mes, y=totalReproduccionesMes, group=1)) +
+  geom_line(linetype = \dashed\)+
+  geom_point()+
+  scale_y_continuous(labels = unit_format(scale = 1, unit = \Rep\))+
+  labs(title = 'AR 2018 | Mes con mayores reproducciones', 
+       x = \Mes\,
+       y = \Total Reproducciones\)
+```
+```"

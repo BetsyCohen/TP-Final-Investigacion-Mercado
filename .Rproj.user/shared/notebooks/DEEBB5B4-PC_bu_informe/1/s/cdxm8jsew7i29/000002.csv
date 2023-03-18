@@ -1,0 +1,12 @@
+"0","```r
+# CONTEXTO / ACCESO A INTERNET
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  tabyl(contexto_en_el_que_se_encuentra_el_espacio_cultural, x_cuenta_con_acceso_a_internet) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

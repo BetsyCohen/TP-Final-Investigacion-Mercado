@@ -1,0 +1,12 @@
+"0","```r
+# RELACION CON EL INMUEBLE / FORMALIZACIÓN
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  tabyl(tipo_de_relacion_con_el_inmueble, personeria_rec) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

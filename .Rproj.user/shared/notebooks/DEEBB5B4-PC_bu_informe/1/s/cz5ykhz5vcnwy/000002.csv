@@ -1,0 +1,25 @@
+"0","```r
+# OTROS REGISTROS
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\") %>%
+  concat.split(split.col =\"su_espacio_esta_inscripto_en_algun_otro_registro_del_estado_nacional_provincial_y_municipal\", sep = \" \\| \", structure = \"expanded\",
+               type = \"character\", fill = 0, drop = T, n = T) %>%
+  dplyr::select(starts_with(\"su_espacio_esta_inscripto_en_algun_otro_registro_del_estado_nacional_provincial_y_municipal\")) %>%
+  questionr::multi.table(true.codes = 1,digits = 0, freq = TRUE) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(\"su_espacio_esta_inscripto_en_algun_otro_registro_del_estado_nacional_provincial_y_municipal_\") %>%
+  arrange(desc(n)) %>%
+  mutate(su_espacio_esta_inscripto_en_algun_otro_registro_del_estado_nacional_provincial_y_municipal_ = gsub(\"su_espacio_esta_inscripto_en_algun_otro_registro_del_estado_nacional_provincial_y_municipal_\",\"\",su_espacio_esta_inscripto_en_algun_otro_registro_del_estado_nacional_provincial_y_municipal_)) %>%
+  adorn_totals() 
+```"
+"1"," su_espacio_esta_inscripto_en_algun_otro_registro_del_estado_nacional_provincial_y_municipal_   n %multi
+                                                                                      Ninguno 331     47
+                                     Registro Nacional de Organizaciones Comunitarias - CENOC 195     28
+                                                                                         Otro 160     23
+                                   Registro Nacional de Comedores y/o Merenderos Comunitarios  60      9
+                                         Registro Nacional de Bibliotecas Populares - CONABIP  50      7
+                                            Registro Nacional de Clubes de Barrio y de Pueblo  28      4
+                                                                Registro de Museos Argentinos  10      1
+                                                                                        Total 834    119
+"

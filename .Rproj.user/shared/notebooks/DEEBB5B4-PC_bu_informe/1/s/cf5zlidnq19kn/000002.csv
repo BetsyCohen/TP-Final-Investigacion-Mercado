@@ -1,0 +1,13 @@
+"0","```r
+ggplot(grafico_2, aes(fill=factor(personeria_rec, levels=c(\"No\",\"Si\")), y=seleccionadxs, x=region)) + 
+    geom_bar(position=\"fill\", stat=\"identity\", col='black') +
+    scale_fill_manual(name=\"\", values = c(\"#ffce00\", \"#4fbb73\"), labels = c(\"Sin personería Juridica\",\"Con personería jurídica\")) +
+    scale_y_continuous(labels = scales::percent) + 
+    labs(x=\"REGIÓN\", y=\"PORCENTAJE\", title = \"Distribución porcentual de organizaciones según grado de formalización. Por región.\") +
+    theme(axis.title.y = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(axis.title.x = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(plot.title = element_text(size = 10, face =\"bold\", color = \"black\")) +
+    theme(legend.position=\"bottom\", legend.direction=\"horizontal\",legend.title = element_blank()) +
+    #theme_classic()+
+    coord_flip()
+```"

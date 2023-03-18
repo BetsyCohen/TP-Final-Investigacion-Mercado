@@ -1,0 +1,7 @@
+"0","```r
+grafico_0 <- base %>% 
+  filter(registro_subtipo==\"Espacio cultural\" | registro_subtipo==\"Organización sin espacio\")%>%
+  filter(ano_de_creacion>=1950 & ano_de_creacion<=2020)%>%
+  dplyr::group_by(ano_de_creacion, personeria_rec) %>%
+  dplyr::summarise(seleccionadxs = n_distinct(id_bu))
+```"

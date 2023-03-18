@@ -1,0 +1,51 @@
+---
+title: "Exploracion Airbnb"
+author: "Betsy Cohen"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_download: true
+    css: hoja_estilo_untref.css
+      
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(stats)
+library(psych)
+
+
+```
+
+
+Airbnb nació como una plataforma que inicialmente promovía
+
+Utilizando los datos ofrecidos por insideairbnb.com nos proponemos identificar cuales son las principales variables que determinan el precio de las publicaciones disponibles para Buenos Aires a junio de 2022. Observar si se pueden diferenciar (en función de estas variables) diferentes perfiles de reserva en función del precio (minimos y máximos). 
+
+
+# ETL y Exploración inicial
+
+```{r}
+df_listings<- read.csv("listings.csv")
+
+skimr::skim(df_listings)
+
+```
+
+
+```{r}
+
+head(df_listings$price)
+
+df_listings %>% 
+  mutate(price = gsub("[^0-9.]", "", price),
+         price = as.numeric(price)) %>% 
+  select(price_2) %>% 
+  head
+
+```
+

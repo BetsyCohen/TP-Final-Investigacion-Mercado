@@ -1,0 +1,6 @@
+"0","```r
+# SELECCIONO LAS VARIABLES
+
+base_3 <- base %>% filter(registro_subtipo==\"Espacio cultural\")
+base_3 <- data.frame(base_3[,c(35,36,38,43,44,45,40)])
+```"

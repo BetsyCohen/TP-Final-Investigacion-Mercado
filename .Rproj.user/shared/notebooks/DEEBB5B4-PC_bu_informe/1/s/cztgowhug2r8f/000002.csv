@@ -1,0 +1,39 @@
+"0","```r
+# ZONA URBANA / ACTIVIDADES
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  filter(ano_de_creacion_rec1==\"masde10anios\")%>%
+  filter(contexto_en_el_que_se_encuentra_el_espacio_cultural==\"Zona urbana\")%>%
+  concat.split(split.col =\"actividades\", sep = \" \\| \", structure = \"expanded\",
+               type = \"character\", fill = 0, drop = T, n = T) %>%
+  dplyr::select(starts_with(\"actividades\")) %>%
+  questionr::multi.table(true.codes = 1,digits = 0, freq = TRUE) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(\"actividades_\") %>%
+  arrange(desc(n)) %>%
+  mutate(actividades_ = gsub(\"actividades_\",\"\",actividades_)) %>%
+  adorn_totals()
+```"
+"1","                                                                               actividades_   n %multi
+                  Formación cultural/artística (Cursos, talleres, clases, seminarios, etc.) 155     87
+                                                      Actividades comunitarias y solidarias 148     83
+                                                                       Espectáculos en vivo  82     46
+                                                                                      Otras  72     40
+                                            Exposiciones y/o exhibiciones de artes visuales  46     26
+                                                                      Medio de comunicación  42     24
+                                                                         Festivales locales  41     23
+                                                               Feria de la economía popular  38     21
+                                                   Promoción y preservación de la identidad  37     21
+                                                                 Exhibiciones audiovisuales  36     20
+                                                                     Actividades deportivas  32     18
+    Comercialización de bienes culturales (libros, objetos de diseño, discos, ferias, etc.)  32     18
+                         Actividades preservación, curaduría, y conservación del patrimonio  24     13
+                                                             Alquiler de salas para ensayos  22     12
+                                                                 Venta de comidas y bebidas  19     11
+                                                                                      Peñas  17     10
+                                                                 Espectáculos por streaming  16      9
+ Comercialización de servicios culturales (alquiler de sonido, producción audiovisual, etc)  14      8
+                                                              Milongas / Prácticas de tango  14      8
+                                                          Residencias artísticas / clínicas   3      2
+                                                                                      Total 890    500
+"

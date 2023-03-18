@@ -1,0 +1,12 @@
+"0","```r
+# BARRIOS POPULARES / TIPO DE ESPACIO
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  filter(ano_de_creacion_rec1==\"masde10anios\")%>%
+  filter(contexto_en_el_que_se_encuentra_el_espacio_cultural==\"Barrio Popular\")%>%
+  tabyl(tipo_de_espacio_cultural) %>%
+  arrange(desc(percent), n) %>% 
+  adorn_pct_formatting()%>%
+  knitr::kable()
+```"

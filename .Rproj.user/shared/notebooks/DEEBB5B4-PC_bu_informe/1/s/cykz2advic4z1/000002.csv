@@ -1,0 +1,6 @@
+"0","```r
+# SELECCIONO LAS VARIABLES
+
+base_4 <- base %>% filter(registro_subtipo==\"Organización sin espacio\")
+base_4 <- data.frame(base_4[,c(60,55,58,80,78,82)])
+```"

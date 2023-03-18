@@ -1,0 +1,12 @@
+"0","```r
+ggplot(grafico_4, aes(fill=factor(tipo_de_relacion_con_el_inmueble, levels=c(\"Otra\", \"Convenio institucional\",\"Propietario\", \"Comodato / Cesión de espacio\", \"Alquiler\")), y=seleccionadxs, x=ano_de_creacion_rec)) +
+  geom_bar(stat = \"identity\", position = \"dodge\", col='black') +
+  scale_fill_manual(name=\"\", values = c(\"#ffce00\", \"#9284be\", \"#f79525\", \"#37bbed\", \"#d7df23\"), labels = c(\"Otra\", \"Convenio institucional\",\"Propietario\", \"Comodato / Cesión de espacio\", \"Alquiler\")) +
+    scale_y_continuous(limits=c(0, 150)) + 
+    labs(x=\"ANTIGUEDAD\", y=\"# ORGANIZACIONES\", title = \" Cantidad de espacios culturales comunitarios según tipo de relación con el inmueble.\n Por antiguedad.\") +
+    theme(axis.title.y = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(axis.title.x = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(plot.title = element_text(size = 10, face =\"bold\", color = \"black\")) +
+    theme(legend.position=\"bottom\", legend.direction=\"horizontal\",legend.title = element_blank())
+
+```"

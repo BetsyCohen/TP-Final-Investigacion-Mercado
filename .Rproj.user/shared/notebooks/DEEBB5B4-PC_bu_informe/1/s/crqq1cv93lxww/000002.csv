@@ -1,0 +1,29 @@
+"0","```r
+# POLITICAS DE ACCESIBILIDAD
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\") %>%
+  concat.split(split.col =\"posee_el_espacio_cultural_politicas_de_accesibilidad_para_garantizar_la_participacion_segura_de\", sep = \" \\| \", structure = \"expanded\",
+               type = \"character\", fill = 0, drop = T, n = T) %>%
+  dplyr::select(starts_with(\"posee_el_espacio_cultural_politicas_de_accesibilidad_para_garantizar_la_participacion_segura_de\")) %>%
+  questionr::multi.table(true.codes = 1,digits = 0, freq = TRUE) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(\"posee_el_espacio_cultural_politicas_de_accesibilidad_para_garantizar_la_participacion_segura_de_\") %>%
+  arrange(desc(n)) %>%
+  mutate(posee_el_espacio_cultural_politicas_de_accesibilidad_para_garantizar_la_participacion_segura_de_ = gsub(\"posee_el_espacio_cultural_politicas_de_accesibilidad_para_garantizar_la_participacion_segura_de_\",\"\",posee_el_espacio_cultural_politicas_de_accesibilidad_para_garantizar_la_participacion_segura_de_)) %>%
+  adorn_totals() 
+```"
+"1"," posee_el_espacio_cultural_politicas_de_accesibilidad_para_garantizar_la_participacion_segura_de_   n %multi
+                                                           Personas usuarias de silla de ruedas | 204     29
+                                                             Personas usuarias de silla de ruedas 173     25
+                                              Personas con discapacidad visual/ personas ciegas | 101     14
+                                                                        Ninguna de las anteriores  99     14
+                                              Personas con discapacidad auditiva/ personas sordas  82     12
+                                            Personas con discapacidad auditiva/ personas sordas |  26      4
+                                                                                             Otra  17      2
+                                                Personas con discapacidad visual/ personas ciegas  12      2
+                                                                                                   10      1
+                                                                                           | Otra   9      1
+                                                                      | Ninguna de las anteriores   1      0
+                                                                                            Total 734    104
+"

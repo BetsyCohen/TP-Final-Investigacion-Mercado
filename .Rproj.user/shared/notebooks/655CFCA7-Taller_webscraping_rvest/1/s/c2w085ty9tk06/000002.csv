@@ -1,0 +1,5 @@
+"0","```r
+```r
+spotifyTibble <- do.call(rbind, miTibble)   #Final tibble 5 columnas & (200 filas * 4 dias) = 800
+```
+```"

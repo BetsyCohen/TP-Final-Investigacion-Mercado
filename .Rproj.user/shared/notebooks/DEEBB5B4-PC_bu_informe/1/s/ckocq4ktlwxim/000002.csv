@@ -1,0 +1,12 @@
+"0","```r
+# FORMALIZACION
+
+base %>%
+  filter(registro_subtipo==\"Espacio cultural\" | registro_subtipo==\"Organización sin espacio\" | registro_subtipo==\"no_registrada_sexta\")%>%
+  tabyl(nuevos_destinatarios, personeria_rec) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

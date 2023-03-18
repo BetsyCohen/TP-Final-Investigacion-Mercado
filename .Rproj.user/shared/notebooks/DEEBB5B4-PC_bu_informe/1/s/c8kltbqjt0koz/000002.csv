@@ -1,0 +1,13 @@
+"0","```r
+ggplot(grafico_5, aes(fill=factor(x_cuenta_con_acceso_a_internet, levels=c(\"No\", \"Si\")), y=seleccionadxs, x=contexto_en_el_que_se_encuentra_el_espacio_cultural)) + 
+    geom_bar(position=\"fill\", stat=\"identity\", col='black') +
+    scale_fill_manual(name=\"\", values = c(\"#f79525\", \"#4fbb73\"), labels = c(\"No cuenta con acceso a intetnet\",\"Cuenta con acceso a internet\")) +
+    scale_y_continuous(labels = scales::percent) + 
+    labs(x=\"REGIÓN\", y=\"PORCENTAJE\", title = \" Distribución porcentual de espacios culturales comunitarios según contectividad. \n Por contexto en el que se encuentran.\") +
+    theme(axis.title.y = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(axis.title.x = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(plot.title = element_text(size = 10, face =\"bold\", color = \"black\")) +
+    theme(legend.position=\"bottom\", legend.direction=\"horizontal\",legend.title = element_blank()) +
+    #theme_classic()+
+    coord_flip()
+```"

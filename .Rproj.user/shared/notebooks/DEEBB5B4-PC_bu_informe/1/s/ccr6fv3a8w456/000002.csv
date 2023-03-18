@@ -1,0 +1,4 @@
+"0","```r
+grafico_1 <- base %>% dplyr::group_by(region, capitales) %>%
+  dplyr::summarise(seleccionadxs = n_distinct(id_bu))
+```"

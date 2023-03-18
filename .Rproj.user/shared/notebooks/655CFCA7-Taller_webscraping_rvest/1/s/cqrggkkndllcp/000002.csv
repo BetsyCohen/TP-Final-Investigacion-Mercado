@@ -1,0 +1,19 @@
+"0","```r
+```r
+porDiaDeLaSemana <- spotify %>% 
+  group_by(DiaSemana) %>%
+  summarise(totalReproduccionesDia = sum(Reproducciones)) %>% 
+  arrange(desc(totalReproduccionesDia)) %>% 
+  print()
+```
+```r
+
+ggplot(data=porDiaDeLaSemana, aes(x=DiaSemana, y=totalReproduccionesDia, group=1)) +
+  geom_line(linetype = \dashed\)+
+  geom_point()+
+  scale_y_continuous(labels = unit_format(scale = 1, unit = \Rep\))+
+  labs(title = 'AR 2018 | Reproducciones por dia de la semana', 
+       x = \Dia de la semana\,
+       y = \Total Reproucciones\)
+```
+```"

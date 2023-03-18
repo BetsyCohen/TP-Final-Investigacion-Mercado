@@ -1,0 +1,13 @@
+"0","```r
+# TIPO DE RELACIÓN CON EL INMUEBLE (ESPACIOS QUE EXISTEN HACE +DE 10 AÑOS)
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  filter(ano_de_creacion_rec1==\"masde10anios\" | ano_de_creacion_rec1==\"menosde10anios\")%>%
+  tabyl(ano_de_creacion_rec1, tipo_de_relacion_con_el_inmueble) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

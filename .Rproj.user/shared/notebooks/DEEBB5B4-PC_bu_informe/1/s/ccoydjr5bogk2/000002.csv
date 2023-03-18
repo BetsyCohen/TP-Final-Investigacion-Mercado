@@ -1,0 +1,23 @@
+"0","```r
+# REGIONES
+
+NOA <- c('CATAMARCA','JUJUY','LA RIOJA','SALTA','SANTIAGO DEL ESTERO','TUCUMAN')
+NEA <- c('CORRIENTES', 'CHACO','FORMOSA','MISIONES')
+CUYO <- c('MENDOZA','SAN LUIS', 'SAN JUAN')
+PATAGONIA <- c('RIO NEGRO','NEUQUEN','CHUBUT','SANTA CRUZ','TIERRA DEL FUEGO', 'LA PAMPA')
+CENTRO <- c('CORDOBA','ENTRE RIOS', 'SANTA FE')
+C.A.B.A <- ('CAPITAL FEDERAL (C.A.B.A.)')
+BSAS <- ('BUENOS AIRES')
+
+base <- base %>% 
+  mutate(region = factor(case_when( provincia %in% C.A.B.A ~ 1,
+                                    provincia %in% BSAS ~ 2,
+                                    provincia %in% NOA ~ 3,
+                                    provincia %in% NEA ~ 4,
+                                    provincia %in% CUYO ~ 5,
+                                    provincia %in% CENTRO ~ 6,
+                                    provincia %in% PATAGONIA ~ 7),
+                                    levels = c(1:7),
+                                    labels = c(\"C.A.B.A\",\"BSAS\",\"NOA\",\"NEA\",\"CUYO\",\"CENTRO\",\"PATAGONIA\")))
+              
+```"

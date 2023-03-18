@@ -1,0 +1,13 @@
+"0","```r
+ggplot(grafico_3, aes(fill=factor(tipo_de_relacion_con_el_inmueble, levels=c(\"Otra\", \"Convenio institucional\",\"Propietario\", \"Comodato / Cesión de espacio\", \"Alquiler\")), y=seleccionadxs, x=region)) + 
+    geom_bar(position=\"fill\", stat=\"identity\", col='black') +
+    scale_fill_manual(name=\"\", values = c(\"#ffce00\", \"#9284be\", \"#f79525\", \"#37bbed\", \"#d7df23\"), labels = c(\"Otra\", \"Convenio institucional\",\"Propietario\", \"Comodato / Cesión de espacio\", \"Alquiler\")) +
+    scale_y_continuous(labels = scales::percent) + 
+    labs(x=\"REGIÓN\", y=\"PORCENTAJE\", title = \" Distribución porcentual de espacios culturales comunitarios según tipo de relación \n con el inmueble. Por región.\") +
+    theme(axis.title.y = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(axis.title.x = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(plot.title = element_text(size = 10, face =\"bold\", color = \"black\")) +
+    theme(legend.position=\"bottom\", legend.direction=\"horizontal\",legend.title = element_blank()) +
+    #theme_classic()+
+    coord_flip()
+```"

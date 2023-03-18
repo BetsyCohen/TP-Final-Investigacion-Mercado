@@ -1,0 +1,51 @@
+"0","```r
+```r
+
+logPaginas <- vector(\list\, length(urlFinal))
+miTibble <- list()
+
+for (i in seq_along(urlFinal)) {
+  if (!(urlFinal[i] %in% names(logPaginas))) {
+    cat(paste(\Trabajando en: \, urlFinal[i], \....\))
+    ok <- FALSE
+    contador <- 0
+    while (ok == FALSE & contador <= 5) {
+      contador <- contador + 1
+      salida <- tryCatch({ SpotifyChartsScrape(urlFinal[i])
+                          },error = function(e) {
+                                    Sys.sleep(2)
+                                    e
+                                    }
+                )
+      if (\error\ %in% class(salida)) {
+        cat(\!\)
+      } else {
+        ok <- TRUE
+        cat(\ Finalizado\)
+        miTibble[[i]] <- salida
+        names(logPaginas)[i] <- urlFinal[i]
+      }
+    }
+    cat(\\n\)
+  }
+} 
+```
+```"
+"1","Trabajando en:  https://spotifycharts.com/regional/ar/daily/2019-06-08 .... Finalizado
+Trabajando en:  https://spotifycharts.com/regional/ar/daily/2019-06-09 .... Finalizado
+Trabajando en:  https://spotifycharts.com/regional/ar/daily/2019-06-10 .... Finalizado
+Trabajando en:  https://spotifycharts.com/regional/ar/daily/2019-06-11 .... Finalizado
+Trabajando en:  https://spotifycharts.com/regional/ar/daily/2019-06-12 ....!!!!!!
+Warning in for (i in seq_len(n)) { :
+  closing unused connection 8 (https://spotifycharts.com/regional/ar/daily/2019-06-12)
+Warning in for (i in seq_len(n)) { :
+  closing unused connection 7 (https://spotifycharts.com/regional/ar/daily/2019-06-12)
+Warning in for (i in seq_len(n)) { :
+  closing unused connection 6 (https://spotifycharts.com/regional/ar/daily/2019-06-12)
+Warning in for (i in seq_len(n)) { :
+  closing unused connection 5 (https://spotifycharts.com/regional/ar/daily/2019-06-12)
+Warning in for (i in seq_len(n)) { :
+  closing unused connection 4 (https://spotifycharts.com/regional/ar/daily/2019-06-12)
+Warning in for (i in seq_len(n)) { :
+  closing unused connection 3 (https://spotifycharts.com/regional/ar/daily/2019-06-12)
+"

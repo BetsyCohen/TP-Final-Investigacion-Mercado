@@ -1,0 +1,11 @@
+"0","```r
+# PERIODO DE INGRESO AL PROGRAMA / CIUDADES CAPITALES
+
+base %>% 
+  tabyl(periodo_ingreso, capitales) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

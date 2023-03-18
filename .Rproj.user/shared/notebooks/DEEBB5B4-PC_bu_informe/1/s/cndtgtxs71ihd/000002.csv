@@ -1,0 +1,23 @@
+"0","```r
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\" | registro_subtipo==\"Organización sin espacio\") %>%
+  #rename(publicos = poblacion_publico_al_que_estan_dirigidas_las_actividades) %>%
+  concat.split(split.col =\"poblacion_publico_al_que_estan_dirigidas_las_actividades\", sep = \" \\| \", structure = \"expanded\",
+               type = \"character\", fill = 0, drop = T, n = T) %>%
+  dplyr::select(starts_with(\"poblacion_publico_al_que_estan_dirigidas_las_actividades\")) %>%
+  questionr::multi.table(true.codes = 1,digits = 0, freq = TRUE) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(\"poblacion_publico_al_que_estan_dirigidas_las_actividades_\") %>%
+  arrange(desc(n)) %>%
+  mutate(poblacion_publico_al_que_estan_dirigidas_las_actividades_ = gsub(\"poblacion_publico_al_que_estan_dirigidas_las_actividades_\",\"\",poblacion_publico_al_que_estan_dirigidas_las_actividades_)) %>%
+  adorn_totals() 
+```"
+"1"," poblacion_publico_al_que_estan_dirigidas_las_actividades_    n %multi
+                                           Público general  979     82
+                                                   Jóvenes  692     58
+                                                Adultos/as  533     44
+                                                   Niñeces  383     32
+                                        Adultos/as mayores  313     26
+                                                 Infancias  189     16
+                                                     Total 3089    258
+"

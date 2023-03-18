@@ -1,0 +1,26 @@
+"0","```r
+# SERVICIOS E INSTALACIONES CON LOS QUE CUENTA EL ESPACIO (AGUA POTABLE / GAS NATURAL / BAÑOS / ETC)
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\") %>%
+  concat.split(split.col =\"el_espacio_cultural_cuenta_con\", sep = \" \\| \", structure = \"expanded\",
+               type = \"character\", fill = 0, drop = T, n = T) %>%
+  dplyr::select(starts_with(\"el_espacio_cultural_cuenta_con\")) %>%
+  questionr::multi.table(true.codes = 1,digits = 0, freq = TRUE) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(\"el_espacio_cultural_cuenta_con_\") %>%
+  arrange(desc(n)) %>%
+  mutate(el_espacio_cultural_cuenta_con_ = gsub(\"el_espacio_cultural_cuenta_con_\",\"\",el_espacio_cultural_cuenta_con_)) %>%
+  adorn_totals() 
+```"
+"1"," el_espacio_cultural_cuenta_con_    n %multi
+           Instalación eléctrica  655     94
+                      Sanitarios  644     92
+                    Agua Potable  637     91
+                     Ventilación  486     70
+                  Gas de garrafa  306     44
+                     Calefacción  289     41
+                   Refrigeración  271     39
+                     Gas natural  254     36
+                           Total 3542    507
+"

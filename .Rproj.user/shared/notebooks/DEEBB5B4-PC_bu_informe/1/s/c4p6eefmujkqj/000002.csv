@@ -1,0 +1,39 @@
+"0","```r
+# BARRIOS POPULARES / ACTIVIDADES
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  filter(ano_de_creacion_rec1==\"masde10anios\")%>%
+  filter(contexto_en_el_que_se_encuentra_el_espacio_cultural==\"Barrio Popular\")%>%
+  concat.split(split.col =\"actividades\", sep = \" \\| \", structure = \"expanded\",
+               type = \"character\", fill = 0, drop = T, n = T) %>%
+  dplyr::select(starts_with(\"actividades\")) %>%
+  questionr::multi.table(true.codes = 1,digits = 0, freq = TRUE) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(\"actividades_\") %>%
+  arrange(desc(n)) %>%
+  mutate(actividades_ = gsub(\"actividades_\",\"\",actividades_)) %>%
+  adorn_totals()
+```"
+"1","                                                                               actividades_   n %multi
+                                                      Actividades comunitarias y solidarias 133     94
+                  Formación cultural/artística (Cursos, talleres, clases, seminarios, etc.) 124     87
+                                                                       Espectáculos en vivo  65     46
+                                                                     Actividades deportivas  56     39
+                                                                                      Otras  55     39
+                                                                         Festivales locales  44     31
+                                                               Feria de la economía popular  40     28
+                                                   Promoción y preservación de la identidad  34     24
+                                                                      Medio de comunicación  33     23
+                                                                 Exhibiciones audiovisuales  30     21
+                                                                                      Peñas  17     12
+                                            Exposiciones y/o exhibiciones de artes visuales  16     11
+                         Actividades preservación, curaduría, y conservación del patrimonio  10      7
+                                                                 Espectáculos por streaming  10      7
+                                                             Alquiler de salas para ensayos   9      6
+    Comercialización de bienes culturales (libros, objetos de diseño, discos, ferias, etc.)   9      6
+                                                                 Venta de comidas y bebidas   9      6
+ Comercialización de servicios culturales (alquiler de sonido, producción audiovisual, etc)   7      5
+                                                              Milongas / Prácticas de tango   5      4
+                                                          Residencias artísticas / clínicas   4      3
+                                                                                      Total 710    499
+"

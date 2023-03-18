@@ -1,0 +1,328 @@
+---
+title: "TP Final Estadistica aplicada a investigación de mercado"
+author: "Betsy Cohen"
+format:
+  html:
+    theme: lux
+    code-fold: true
+    code-summary: "Mostrar el código"
+    table-of-contents: true
+editor: visual
+---
+
+```{r, setup, include=FALSE}
+
+library(tidyverse)
+library(janitor)
+library(tidytext)
+library(DT)
+library(fastDummies)
+
+
+# Bases requeridas:
+df_alojamientos_badata <- read_csv("input/badata_alojamientos_turisticos.csv") 
+df_airbnb <- read.csv("input/listings.csv")
+
+#Parmetros
+
+```
+
+## Nuestro caso de estudio
+
+"Angelito" es un viejo hotel de pasajeros que Don Angel, explotó durante los años 50 como hotel de pasajeros y que ahora sus nietos están poniendo en valor para rentar las habitaciones de manera temporal por Airbnb. Ubicado en el epicentro de San Telmo, el espacio espera abrir sus puertas al público en diciembre de 2024 y la primera preocupación de sus nietos es cuales son las principales variables a tener en cuenta para obtener una alta ocupación.
+
+Según los datos abiertos oficiales (BADATA) C.A.B.A. posee 665 alojamientos turísticos registrados de los cuales el 40% corresponden a modelo no tradicionales como hoteles boutique, hostels, aparts y B&B.
+
+```{r, warning=FALSE}
+
+knitr::kable(df_alojamientos_badata %>% 
+  mutate("Tipo de alojamiento" = case_when(str_detect(tipo,"estrella")|tipo %in% c("Hotel sindical","Hospedaje") ~ "Hotel tradicional",
+                              tipo %in% c("Boutique","Hotel boutique") ~"Hotel boutique",
+                              TRUE ~ tipo))%>% 
+  tabyl("Tipo de alojamiento") %>%
+  arrange(desc(n)) %>% 
+  adorn_totals() %>% 
+  adorn_pct_formatting(digits = 0) %>% 
+  as.data.frame(),)
+  
+
+
+```
+
+```{r, include=FALSE}
+
+rm(df_alojamientos_badata)
+```
+
+El sitio <http://insideairbnb.com/>. es un proyecto que recopila datos de la plataforma colaborativa de alquileres, con el propósito de realizar un seguimiento del impacto de este tipo de alquiler sobre la vivienda en las principales capitales turísticas del mundo. Si bien existen otras plataformas de alquiler, Airbnb ha logrado posicionarse como una de las principales y es por ello que creemos que es un buen punto de partida.
+
+**En este escrito nos proponemos identificar en esta base de datos cuales son las variables que se asocian a una alta ocupación y cuales son las características de la comptencia directa de Angelito**
+
+Como indicador de ocupación tomamos la variable `number_of_reviews_ltm` que representa la cantidad de comentarios que obtuvo una publicación en el último año (asumimos que las publicaciones que no han tenido ningún comentario en el último no han tenido movimiento y por lo tanto no son una referencia en términos de competencia de mercado).
+
+## Metodología
+
+Teniendo en cuenta que tenemos muchas variables (tanto categóricas como numéricas), vamos a evaluar dos posibles modelos para la selección de las variables (LASSO y Stepwise) y después, de acuerdo a los resultados nos quedaremos con el modelo más preciso. 
+
+Una vez que tengamos estas variables lo utilizaremos como insumo para segmentar las publicaciones y ver cómo se agrupan entre sí con un análisis de cluster (ACA VER SI HACEMOS KMEDIA O KMODE PORQUE SI NOS QUEDAN SELECCIONADAS MUCHAS CATEGORICAS SEGURAMENTE NOS CONVENGA MÁS ESA TÉCNICA. SINO PODEMOS PENSAR EN HACER UN ÁRBOL)
+
+### LASSO
+Para preparar las variables antes de aplicar LASSO, es necesario realizar algunas transformaciones que dependen del tipo de variable:
+
+**Variables numéricas:** es necesario escalarlas para que todas tengan la misma escala y no se vean afectadas por diferencias de magnitud. Esto se puede hacer utilizando una transformación Z-score (o sea, restar la media y dividir por la desviación estándar) o una transformación de escala mínima y máxima (restar el mínimo y dividir por la diferencia entre el máximo y el mínimo).
+
+**Variables categóricas:** es necesario codificar (armarlas como dicotómicas o dummies). Para esto podemos usar la librería fastDummies de R.
+
+
+También es importante tener en cuenta que tendremos que partir el dataset en training y testing antes de aplicar LASSO para evaluar el rendimiento del modelo. Esto es importante para evitar el overfiting o sobreajuste del modelo a los datos  y asegurar que el modelo generalice bien a nuevos datos.
+
+Además, es importante tener en cuenta que las variables deben estar en el mismo conjunto de datos antes de aplicar LASSO. Es decir, si se utilizan diferentes métodos de codificación para diferentes variables categóricas, es necesario asegurarse de que las variables codificadas se unan en un único conjunto de datos antes de aplicar LASSO.
+
+
+## Exploración de la base
+
+Insideairbnb provee un dataset con publicaciones, comentarios de publicaciones y calendario de anuncios a diciembre de 2022 y se publican en forma de archivos csv:
+
+**listing_details.csv** - Datos detallados de los anuncios
+
+**calendar_details.csv** - Datos detallados del calendario para anuncios
+
+**review_details.csv** - Datos de los comentarios detallados para los anuncions
+
+**review_summary.csv** - Resumen de datos de comentaris e ID de anuncios
+
+**neighbourhoods.csv:** lista de barrios para el filtro geográfico.
+
+**barrios.geojson** - Archivo GeoJSON de los barrios
+
+Se puede encontrar una copia de los datos en Inside Airbnb
+
+Una inspección rápida de los archivos reveló que tanto la la información contenida en el archivo de calendario como de resumenes ya está presente en los detalles de los avisos (listing), por lo que los descartamos y nos quedamos solo con el de anuncions (listing_detals.csv).
+
+La tabla de publicaciones (listing) muestra un total de 20085 avisos para las cuales hay 75 variables.
+
+```{r}
+skimr::skim(df_airbnb)
+
+```
+
+Observamos cada variable para ver qué es y si nos sirven comparando con un diccionario de referencia que tiene el sitio el cual traducimos a continuación y sobre el cual anotamos algunas observaciones para seguir trabajando en la etapa de limpieza
+
+```{r}
+dicc_var<- readxl::read_xlsx("input/ldc.xlsx")
+DT::datatable(dicc_var,
+              options = list(pageLength = 10, scrollY = "700px"))
+
+
+```
+
+El dataset como vemos tiene muchas variables que de por sí no nos sirven para la segementación en función de la ocupación pero que podrían ser de utilidad luego para un análisis más cualitativo así que las separamos y las dejamos indicadas en dos vectores para ulteriores análisis.
+
+```{r}
+# vector con las variables seleccionadas
+variables_seleccionadas <- c("id","name","number_of_reviews_ltm","host_id","host_response_time","host_response_rate","host_acceptance_rate","host_is_superhost","host_has_profile_pic","host_identity_verified","neighbourhood_cleansed","latitude","longitude","room_type","accommodates","bathrooms_text","bedrooms","beds","amenities","price","review_scores_rating","review_scores_accuracy","review_scores_cleanliness","review_scores_checkin","review_scores_communication","review_scores_location","review_scores_value","instant_bookable","reviews_per_month")
+
+
+# vector con otras variables que serían interesantes en un ulterior analisis con NLP (usarlas para hacer nubes de palabrtas una vez que están ya hechos los clusters, se une todo por el ID de la publicación o del host segun coorresponda a la tabla)
+variables_nlp <- c("description","neighborhood_overview")
+
+# Filtrar columnas seleccionadas
+df_airbnb <- df_airbnb %>% 
+  select(all_of(variables_seleccionadas))
+
+#Check formato
+glimpse(df_airbnb)
+
+```
+
+### Transformación de variables
+
+Trabajamos en la transformación de variables
+
+-   La variable host response time no tiene un criterio cuantitativo por lo cual la dejamos como categórica
+-   Host responde rate y host acceptance rate las corregimos y la transformamos en numérica como un índice entre 0 y 1
+
+```{r}
+
+df_airbnb <- df_airbnb %>% 
+  mutate(host_response_time = factor(host_response_time, 
+                                     levels = c("within an hour","within a few hours","within a day","a few days or more","N/A"),
+                                     label = c("within an hour","within a few hours","within a day","a few days or more","N/A"),
+                                     ordered = T),
+           host_response_rate = str_remove_all(host_response_rate,"[%N/A]"),
+           host_response_rate = as.numeric(host_response_rate)/100,
+           host_acceptance_rate = str_remove_all(host_acceptance_rate,"[%N/A]"),
+           host_acceptance_rate = as.numeric(host_acceptance_rate)/100)
+```
+
+-   Baños es una variable de texto que separamos en tipo y cantidad
+Como los tipos de baño quedaban en 6 categorías que no tenían demasiado sentido los separamos en una variable dicotómica de si el baño es o no privado y los que eran NA los imputamos como privados o compartidos con el mismo criterio
+
+```{r}
+
+# separar el tipo y cantidad 
+df_airbnb <- df_airbnb %>%
+  mutate(bathrooms_text = str_replace(bathrooms_text, "Shared half-bath", "1 Shared_half-bath")) %>%
+  mutate(bathrooms_text = str_replace(bathrooms_text, "Private half-bath", "1 Private_half-bath")) %>% 
+  separate(bathrooms_text, into = c("num_baths", "bath_type"), sep = " ", fill = "right", remove = F, convert = T) 
+
+# revisamos las categorías que quedan
+# df_airbnb %>% 
+#   tabyl(bath_type)
+
+# para ver si baths es privado (ya que asumimos que una casa puede tener más de un baño) lo chequeo contra el room_type y efectivamente en la mayoría de los casos son Entire Home/apt
+# df_airbnb %>% 
+#   filter(bath_type == "baths") %>% 
+#   tabyl(room_type,bath_type) 
+  
+
+# Dicotomización de bath a privado(Private) o no privado (Shared) asumiendo que los que tienen más de un baño "baths" también son privados.
+df_airbnb <- df_airbnb %>% 
+  mutate(bath_type = case_when(bath_type %in% c("bath","baths","private","private","Private_half-bath") ~ "Private",
+                               bath_type %in% c("shared","Shared_half-bath") ~ "Shared")) 
+
+# Imputación de NA  segun el tipo de habitacion 
+df_airbnb <- df_airbnb %>% 
+  mutate(bath_type = case_when(is.na(bath_type) & room_type == "Entire home/apt" ~ "Private",
+                               is.na(bath_type) & room_type == "Hotel room" ~ "Private",
+                               is.na(bath_type) & room_type == "Private room" ~ "Shared",
+                               is.na(bath_type) & room_type == "Shared room" ~ "Shared",
+                               TRUE ~ bath_type ))
+
+# Eliminar bathrooms_text
+df_airbnb$bathrooms_text<- NULL  
+
+# chequeamos cómo quedó la variable
+df_airbnb %>% 
+  tabyl(bath_type,room_type) %>% 
+  adorn_percentages("col") %>% 
+  adorn_pct_formatting() %>% 
+  adorn_title("top")
+
+
+
+
+
+```
+
+-   Amenities esta como una lista de texto entre brakets con una gran variabilidad. la tokenizamos y buscamos los tokens más frecuentes y unimos usando unas regex auqellos tokens que nos pareció que tenía sentido que fueran juntos en una serie de nuevas variables dicotómicas que representan distintos amenities que creemos serían de utilidad a la hora de tomar una decisión y de evaluar como influencia en cada perfil
+
+```{r}
+
+# aramar frecuencia de amenities encontradas para ver cuales podríamos usar
+df_airbnb %>%
+  select(amenities) %>%
+  mutate(amenities = str_replace_all(amenities, "[\\[\\]\"]", "")) %>% # borramos brackets y comillas
+  unnest_tokens(amenity, amenities, token = "regex", pattern = ",\\s*") %>% # Tokeniza y pone un token por fila
+  tabyl(amenity) %>% 
+  arrange(desc(n)) %>% 
+  adorn_pct_formatting()
+
+
+# Basados en estos tokens construimos un set de 19 amenities (como variables dicotómicas) que agrupan varias regex que creemos podrían ser de interés para nuestro cliente.  
+
+df_airbnb <- df_airbnb %>%
+  mutate(amenities = str_replace_all(amenities, "[\\[\\]\"]", "")) %>% # Eliminar brackets y comillas
+  mutate(am_tv = ifelse(str_detect(amenities, regex("\\b(TV|HDTV)\\b", ignore_case = TRUE)), 1, 0),
+         am_streaming_serv_chromecast = ifelse(str_detect(amenities, regex("\\b(netflix|amazon|apple tv|disney+|hbo max|chromecast)\\b", ignore_case = TRUE)), 1, 0),
+         am_wifi = ifelse(str_detect(amenities, regex("\\bWifi\\b",ignore_case = TRUE)), 1, 0),
+         am_air_conditioning = ifelse(str_detect(amenities, regex("\\bair conditioning|ac |	
+central air conditioning|	
+portable air conditioning\\b", ignore_case = T)), 1, 0),
+         am_heating = ifelse(str_detect(amenities,regex("\\bheating\\b", ignore_case = TRUE)), 1, 0),
+         am_kitchen_cooking_stuff = ifelse(str_detect(amenities,regex("\\bkitchen|dishes and silverware|cooking basics|refrigerator|microwave|coffee maker|dining table|toaster|freezer|hot water kettle|stove|wine glasses|coffee\\b", ignore_case = TRUE)), 1, 0),
+         am_washer = ifelse(str_detect(amenities, regex("\\bwasher|dryer\\b",ignore_case = TRUE)), 1, 0),
+         am_bedroom_stuff = ifelse(str_detect(amenities,regex("\\bextra pillows and blankets|bed linens\\b", ignore_case = TRUE)), 1, 0),
+         am_essentials = ifelse(str_detect(amenities,regex("\\bessentials|hangers|hair dryer|hot wate|iron\\b",ignore_case = T)), 1, 0),
+         am_long_term_stays = ifelse(str_detect(amenities,regex("\\blong term stays allowed|cleaning products\\b",ignore_case = TRUE)), 1, 0),
+         am_patio_balcony = ifelse(str_detect(amenities,regex("\\bprivate patio or balcony|patio or balcony|shared patio or balcony|backyard\\b", ignore_case = TRUE)),1,0),
+         am_parking = ifelse(str_detect(amenities,"\\bparking\\b"),1,0),
+         am_elevator = ifelse(str_detect(amenities,regex("\\belevator\\b", ignore_case = T)),1,0),
+         am_host_attention = ifelse(str_detect(amenities,"\\bHost greets you\\b"),1,0),
+         am_shampoo_bath_stuff = ifelse(str_detect(amenities,regex("\\bshampoo|conditioner|bathroom essentials",ignore_case = TRUE)),1,0),
+         am_bathtub = ifelse(str_detect(amenities,regex("\\bbathtub\\b", ignore_case = TRUE)),1,0),
+         am_smoking_allowed = ifelse(str_detect(amenities,regex("\\bsmoking allowed\\b",ignore_case= TRUE)),1,0),
+         am_pet_friendly = ifelse(str_detect(amenities,regex("\\bpets allowed\\b",ignore_case = TRUE)),1,0),
+         am_fire_security = ifelse(str_detect(amenities,regex("\\bfire extinguisher|smoke alarm|carbon monoxide alarm",ignore_case = TRUE)),1,0)) 
+
+df_airbnb %>% 
+  select(starts_with("am_")) %>% 
+  questionr::multi.table(true.codes = 1) %>% 
+  as.data.frame() %>% 
+  tibble::rownames_to_column("am_") %>%
+  arrange(desc(n)) %>%
+  mutate(am_ = gsub("am_","",am_)) %>%
+  rename(amenties = am_) %>% 
+  adorn_totals()
+
+
+```
+
+-   price esta como charcter hay que eliminarle el símbolo pesos y transformar el punto en coma eliminar el .00 de los centavos
+
+
+```{r}
+
+df_airbnb <- df_airbnb %>%
+  mutate(price = as.numeric(str_remove_all(price, "[$,]")))
+
+```
+
+-   host_acceptance_rate Está como el porcentaje en letras y hay que pasarlo a numérico y escalarlo
+```{r}
+
+
+
+```
+
+
+-   dicotomizar con 1 o 0 
+
+```{r}
+"instant_bookable",
+```
+
+-   armar como dummies 
+```{r}
+"neighbourhood_cleansed"
+```
+
+
+#### Analisis de uniariadas
+
+Para una primera descripción del dataset seleccionamos las variables categóricas y hacemos cruce de univariadas
+
+```{r}
+
+names(df_airbnb)
+
+# función para correr la tablas de frencuencia en todo el df
+freq_table <- function(data, cols) {
+  freq_list <- list()
+  for (col in cols) {
+    freq <- data %>%
+      select({{ col }}) %>%
+      tabyl({{ col }}) %>%
+      adorn_pct_formatting()
+    freq_list[[col]] <- freq
+  }
+  return(freq_list)
+}
+
+freq_table(df_airbnb,c("property_type","room_type","bath_type"))
+
+freq_table_categ <- function(data) {
+  data %>% 
+    select_if(is.character) %>% 
+    tabyl() %>% 
+    adorn_pct_formatting() %>% 
+    print()
+}
+
+df_airbnb %>% 
+  select_if(is.character) %>% 
+  colnames()
+
+head(df_airbnb$host_about)
+
+```

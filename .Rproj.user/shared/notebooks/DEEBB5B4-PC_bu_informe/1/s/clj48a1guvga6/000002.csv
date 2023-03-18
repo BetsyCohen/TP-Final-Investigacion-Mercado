@@ -1,0 +1,11 @@
+"0","```r
+
+base$ano_de_creacion_rec = cut(base$ano_de_creacion,
+                           breaks = c(1895,2011,2018,2021),
+                           labels = c(\"masde10anios\",\"5-10anios\", \"menosde5anios\"))
+
+base$ano_de_creacion_rec1 = cut(base$ano_de_creacion,
+                               breaks = c(1895,2011,2021),
+                               labels = c(\"masde10anios\",\"menosde10anios\"))
+
+```"

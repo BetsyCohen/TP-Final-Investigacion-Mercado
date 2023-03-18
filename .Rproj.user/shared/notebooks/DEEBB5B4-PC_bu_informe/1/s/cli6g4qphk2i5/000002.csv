@@ -1,0 +1,13 @@
+"0","```r
+## DISTRIBUCIONES UNIVARIADAS
+
+for (i in colnames(base_2)){
+              base_2 %>% tabyl(i) %>% 
+              arrange(desc(percent), n) %>% 
+              adorn_pct_formatting() -> tabla_columna_i
+  
+              assign(paste0(\"table_\",i), tabla_columna_i)
+              print(data.frame(tabla_columna_i))
+              
+              }
+```"

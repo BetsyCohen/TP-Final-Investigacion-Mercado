@@ -1,0 +1,13 @@
+"0","```r
+# RELACION CON EL INMUEBLE / ANTIGUEDAD
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  filter(ano_de_creacion_rec==\"masde10anios\" | ano_de_creacion_rec==\"5-10anios\" | ano_de_creacion_rec==\"menosde5anios\")%>%
+  tabyl(ano_de_creacion_rec, tipo_de_relacion_con_el_inmueble) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

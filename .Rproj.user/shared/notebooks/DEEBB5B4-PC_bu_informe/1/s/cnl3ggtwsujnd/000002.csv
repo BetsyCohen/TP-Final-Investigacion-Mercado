@@ -1,0 +1,47 @@
+"0","```r
+# MAPA SEGUN PERIODO DE INGRESO DE LA ORGANIZACION AL PROGRAMA
+
+categorias <- base$periodo_ingreso %>% unique() %>% length()
+nombres_categorias <- base$periodo_ingreso %>% unique()
+
+colores <- c('#6ea100','#ffce00','#37bbed' )
+pal <- colorFactor(colores, domain =nombres_categorias)
+
+#37bbed celeste
+#ffce00 amarillo
+#6ea100 verde
+
+lista_tipo <- list()
+for (i in 1:length(nombres_categorias)) {
+  lista_tipo[[i]] <- base_mapa %>% dplyr::filter(periodo_ingreso == nombres_categorias[i])
+}
+names(lista_tipo) <- nombres_categorias
+
+
+mapa_base_IGN <-leaflet() %>% 
+  addTiles('https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png', 
+           attribution = \"Argenmap v2 - Instituto Geográfico Nacional\") %>%
+  setView(-60,-50, zoom = 5) 
+  for (i in 1:length(lista_tipo)) {
+  mapa_base_IGN <- mapa_base_IGN %>% addCircles(data = lista_tipo[[i]], lat = ~lat_sinca, lng = ~long_sinca, 
+                                                color = ~pal(periodo_ingreso), 
+                                                fillOpacity = 0.8, label = ~periodo_ingreso, #aca podría ir el nombre
+                                                group = nombres_categorias[i])
+}
+
+
+
+
+mapa_base_IGN <- mapa_base_IGN %>% addLegend(data = base_mapa, \"bottomleft\", 
+                                     pal = pal, values = ~periodo_ingreso, title = \"Período de ingreso al Programa Puntos de Cultura\", 
+                                     opacity = 1, group = \"Leyenda\")
+
+
+Grupos <- c(\"Leyenda\", nombres_categorias)
+
+mapa_base_IGN <- mapa_base_IGN %>% addLayersControl(overlayGroups = Grupos,
+                                            #baseGroups = nombres_tipo,
+                                            options = layersControlOptions(collapsed = TRUE))
+
+mapa_base_IGN 
+```"

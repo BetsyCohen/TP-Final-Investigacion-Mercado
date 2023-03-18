@@ -1,0 +1,5 @@
+"0","```r
+base <- base %>%
+  mutate(nuevos_destinatarios = case_when(anios_antiguedad_programa == 2 ~ 1,
+                               TRUE ~ 0))
+```"

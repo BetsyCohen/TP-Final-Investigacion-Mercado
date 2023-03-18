@@ -1,0 +1,11 @@
+"0","```r
+# DISTRIBUCION GEOFRAFICA (CIUDADES CAPITALES)
+
+base %>%
+  tabyl(nuevos_destinatarios, capitales) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

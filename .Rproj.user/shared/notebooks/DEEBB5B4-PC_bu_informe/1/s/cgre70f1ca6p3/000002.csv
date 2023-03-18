@@ -1,0 +1,13 @@
+"0","```r
+# CONECTIVIDAD
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  filter(ano_de_creacion_rec1==\"masde10anios\" | ano_de_creacion_rec1==\"menosde10anios\")%>%
+  tabyl(ano_de_creacion_rec1, x_cuenta_con_acceso_a_internet) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

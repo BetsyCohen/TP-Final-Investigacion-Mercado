@@ -1,0 +1,18 @@
+"0","```r
+# MAPA GENERAL
+
+base_mapa <- base%>% drop_na (long_sinca)
+
+base_mapa$lat_sinca <- as.numeric(base_mapa$lat_sinca)
+base_mapa$long_sinca <- as.numeric(base_mapa$long_sinca)
+
+
+mapa_base_IGN <-leaflet() %>% 
+  addTiles('https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png', 
+           attribution = \"Argenmap v2 - Instituto Geográfico Nacional\") %>%
+  setView(-60,-50, zoom = 5) %>%
+  addCircles(data = base_mapa, lat = ~lat_sinca, lng = ~long_sinca, color =\"#6a1b99\")
+
+
+mapa_base_IGN
+```"

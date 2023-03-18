@@ -1,0 +1,15 @@
+"0","```r
+# TOTAL DE MARCAS / Cantidad de veces que la organizacion quedo seleccionada
+
+base$marca_refuerzo_2021 <- as.numeric(base$marca_refuerzo_2021)
+base$marca_convocatoria_2021 <- as.numeric(base$marca_convocatoria_2021)
+base$marca_convocatoria_2020 <- as.numeric(base$marca_convocatoria_2020)
+base$marca_convocatoria_2017 <- as.numeric(base$marca_convocatoria_2017)
+base$marca_convocatoria_2016 <- as.numeric(base$marca_convocatoria_2016)
+base$marca_convocatoria_2013 <- as.numeric(base$marca_convocatoria_2013)
+base$marca_convocatoria_2012 <- as.numeric(base$marca_convocatoria_2012)
+base$marca_convocatoria_2011 <- as.numeric(base$marca_convocatoria_2011)
+
+base$total_marcas = rowSums (base[ , 10:17])
+
+```"

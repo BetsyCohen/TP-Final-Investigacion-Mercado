@@ -1,0 +1,5 @@
+"0","```r
+# SELECCIONO LAS VARIABLES
+
+base_1 <- data.frame(base[,c(3,18,74,82,77,75)]) 
+```"

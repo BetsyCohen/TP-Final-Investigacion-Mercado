@@ -1,0 +1,24 @@
+"0","```r
+# ZONAS URBANAS / PUBLICO DESTINATARIO
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  filter(ano_de_creacion_rec1==\"masde10anios\")%>%
+  filter(contexto_en_el_que_se_encuentra_el_espacio_cultural==\"Zona urbana\")%>%
+  concat.split(split.col =\"poblacion_publico_al_que_estan_dirigidas_las_actividades\", sep = \" \\| \", structure = \"expanded\",
+               type = \"character\", fill = 0, drop = T, n = T) %>%
+  dplyr::select(starts_with(\"poblacion_publico_al_que_estan_dirigidas_las_actividades\")) %>%
+  questionr::multi.table(true.codes = 1,digits = 0, freq = TRUE) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(\"poblacion_publico_al_que_estan_dirigidas_las_actividades_\") %>%
+  arrange(desc(n)) %>%
+  mutate(poblacion_publico_al_que_estan_dirigidas_las_actividades_ = gsub(\"poblacion_publico_al_que_estan_dirigidas_las_actividades_\",\"\",poblacion_publico_al_que_estan_dirigidas_las_actividades_)) %>%
+  adorn_totals()
+```"
+"1"," poblacion_publico_al_que_estan_dirigidas_las_actividades_   n %multi
+                                           Público general 150     84
+                                                   Jóvenes 114     64
+                                                Adultos/as 103     58
+                                                   Niñeces  92     52
+                                        Adultos/as mayores  76     43
+                                                     Total 535    301
+"

@@ -1,0 +1,13 @@
+"0","```r
+# ANTIGUEDAD
+
+base %>%
+  filter(registro_subtipo==\"Espacio cultural\" | registro_subtipo==\"Organización sin espacio\")%>%
+  filter(ano_de_creacion_rec==\"masde10anios\" | ano_de_creacion_rec==\"5-10anios\" | ano_de_creacion_rec==\"menosde5anios\")%>%
+  tabyl(nuevos_destinatarios, ano_de_creacion_rec) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

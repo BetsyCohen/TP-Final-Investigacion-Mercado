@@ -1,0 +1,214 @@
+---
+title: "TP Final Estadistica aplicada a investigación de mercado"
+author: "Betsy Cohen"
+format:
+  html:
+    theme: lux
+    code-fold: true
+    code-summary: "Mostrar el código"
+editor: visual
+---
+
+```{r, setup, include=FALSE}
+
+library(tidyverse)
+library(janitor)
+library(tidytext)
+library(DT)
+#library(RTutor)
+#library(DataExplorer)
+
+# Bases requeridas:
+df_alojamientos_badata <- read_csv("Otras Fuentes/badata_alojamientos_turisticos.csv") 
+df_airbnb <- read.csv("listings.csv")
+
+#Parmetros
+
+```
+
+## Acerca de la fuente de datos
+
+El sitio <http://insideairbnb.com/>. es un proyecto que recopila datos de la plataforma colaborativa de alquileres. Si bien la plataforma se inscribe en el contexto de la crisis habitacional con el fin de demostrar que en la mayoría de las ciudades el alquiler es de casas completas impactando esto en el acceso a las viviendas, en este caso nos proponemos darle otro fin.
+
+En este trabajo nos proponemos caracterizar las publicaciones encontradas para la Ciudad de Buenos Aires en esta plataforma identificando los principales drivers que definen la ocupación y elaborar una caracterización de los mismos en función de estos drivers.
+
+## Antecedentes
+
+Según los datos abiertos oficiales (BADATA) C.A.B.A. posee 665 alojamientos turísticos registrados de los cuales el 40% corresponden a modelo no tradicionales como hoteles boutique, hostels, aparts y B&B.
+
+```{r, warning=FALSE}
+
+
+knitr::kable(df_alojamientos_badata %>% 
+  mutate("Tipo de alojamiento" = case_when(str_detect(tipo,"estrella")|tipo %in% c("Hotel sindical","Hospedaje") ~ "Hotel tradicional",
+                              tipo %in% c("Boutique","Hotel boutique") ~"Hotel boutique",
+                              TRUE ~ tipo))%>% 
+  tabyl("Tipo de alojamiento") %>%
+  arrange(desc(n)) %>% 
+  adorn_totals() %>% 
+  adorn_pct_formatting(digits = 0) %>% 
+  as.data.frame(),)
+  
+
+
+```
+
+En el contexto del arribo de plataformas de alquiler Airbnb ha logrado posicionarse como uno de los espacios de oferta para este tipo alojamientos, en ocasiones entrando en competencia directa con el mismo.
+
+## Exploración de la base
+
+Insideairbnb provee un dataset con publicaciones, comentarios de publicaciones y calendario de anuncios a diciembre de 2022 y se publican en forma de archivos csv:
+
+listing_details.csv - Datos detallados de los anuncions calendar_details.csv - Datos detallados del calendario para anuncios review_details.csv - Datos de los comentarios detallados para los anuncions review_summary.csv - Resumen de datos de comentaris e ID de anuncios neighbourhoods.csv: lista de barrios para el filtro geográfico. barrios.geojson - Archivo GeoJSON de los barrios
+
+Se puede encontrar una copia de los datos en Inside Airbnb
+
+Una inspección rápida de los archivos reveló que tanto la la información contenida en el archivo de calendario como de resuemnes ya está presente en los detalles de los avisos (listing), por lo que los descartamos y nos quedamos solo con el de anuncions (listing_detals.csv).
+
+La tabla de publicaciones (listing) muestra un total de 20085 avisos para las cuales hay 75 variables.
+
+```{r}
+skimr::skim(df_airbnb)
+
+```
+
+Observamos cada variable para ver qué es y si nos sirven
+
+```{r}
+dicc_var<- readxl::read_xlsx("ldc.xlsx")
+DT::datatable(dicc_var)
+
+
+```
+
+Nos quedamos con las siguientes
+
+
+```{r}
+variables_seleccionadas <- c("id","name","number_of_reviews","number_of_reviews_ltm","number_of_reviews_l30d","description","neighborhood_overview","host_id","host_response_time","host_response_rate","host_acceptance_rate","host_is_superhost","host_has_profile_pic","host_identity_verified","neighbourhood_cleansed","latitude","longitude","room_type","accommodates","bathrooms_text","bedrooms","beds","amenities","price","review_scores_rating","review_scores_accuracy","review_scores_cleanliness","review_scores_checkin","review_scores_communication","review_scores_location","review_scores_value","instant_bookable","calculated_host_listings_count","calculated_host_listings_count_entire_homes","calculated_host_listings_count_private_rooms","calculated_host_listings_count_shared_rooms","reviews_per_month")
+
+DT::datatable(dicc_var %>% 
+  filter(Variable %in% variables_seleccionadas))
+```
+
+Seleccionamos las variables con las cuales vamos a trabajar y hacemos las transformaciones necesarias
+
+```{r}
+# Filtrar columnas seleccionadas
+df_airbnb <- df_airbnb %>% 
+  select(all_of(variables_seleccionadas))
+
+#Check formato
+glimpse(df_airbnb)
+
+```
+
+```{r}
+# Algunas transformaciones de variables.
+
+
+df_airbnb <- df_airbnb %>% 
+  mutate(host_response_time = factor(host_response_time, 
+                                     levels = c("within an hour","within a few hours","within a day","a few days or more","N/A"),
+                                     label = c("within an hour","within a few hours","within a day","a few days or more","N/A"),
+                                     ordered = T),
+           host_response_rate = str_remove_all(host_response_rate,"[%N/A]"),
+           host_response_rate = as.numeric(host_response_rate)/100,
+           host_acceptance_rate = str_remove_all(host_acceptance_rate,"[%N/A]"),
+           host_acceptance_rate = as.numeric(host_acceptance_rate)/100)
+
+# Separar en dos columnas el tipo y cantidad de baños
+df_airbnb <- df_airbnb %>%
+  mutate(bathrooms_text = str_replace(bathrooms_text, "Shared half-bath", "1 Shared_half-bath")) %>%
+  mutate(bathrooms_text = str_replace(bathrooms_text, "Private half-bath", "1 Private_half-bath")) %>% 
+  separate(bathrooms_text, into = c("num_baths", "bath_type"), sep = " ", fill = "right", remove = F, convert = T) 
+
+
+# Variable amenities 
+df_airbnb %>%
+  select(amenities) %>% 
+  slice_sample(n=12)
+
+# Los amenities vienen como listas entre brakets de texto libre (parece un json mal incrustado). si los separamos en columnas directamente tenemos 3370 variables (porque la gente lo pone como texto libre). así que primero vemos cuales son los más populares:
+
+freq_amenities <- df_airbnb %>%
+  select(amenities) %>%
+  mutate(amenities = str_replace_all(amenities, "[\\[\\]\"]", "")) %>% # borramos brackets y comillas
+  unnest_tokens(amenity, amenities, token = "regex", pattern = ",\\s*") %>% # Tokeniza y pone un token por fila
+  tabyl(amenity) %>% 
+  arrange(desc(n)) %>% 
+  adorn_pct_formatting()
+
+freq_amenities
+
+# Basados en estos tokens construimos un set de 19 amenities (como variables dicotòmicas) que agrupan varias regex que creemos podrían ser de interés para nuestro cliente.  
+
+df_airbnb <- df_airbnb %>%
+  mutate(amenities = str_replace_all(amenities, "[\\[\\]\"]", "")) %>% # Remove brackets and quotes
+  mutate(am_tv = ifelse(str_detect(amenities, regex("\\b(TV|HDTV)\\b", ignore_case = TRUE)), 1, 0),
+         am_streaming_serv_chromecast = ifelse(str_detect(amenities, regex("\\b(netflix|amazon|apple tv|disney+|hbo max|chromecast)\\b", ignore_case = TRUE)), 1, 0),
+         am_wifi = ifelse(str_detect(amenities, regex("\\bWifi\\b",ignore_case = TRUE)), 1, 0),
+         am_air_conditioning = ifelse(str_detect(amenities, regex("\\bair conditioning|ac |	
+central air conditioning|	
+portable air conditioning\\b", ignore_case = T)), 1, 0),
+         am_heating = ifelse(str_detect(amenities,regex("\\bheating\\b", ignore_case = TRUE)), 1, 0),
+         am_kitchen_cooking_stuff = ifelse(str_detect(amenities,regex("\\bkitchen|dishes and silverware|cooking basics|refrigerator|microwave|coffee maker|dining table|toaster|freezer|hot water kettle|stove|wine glasses|coffee\\b", ignore_case = TRUE)), 1, 0),
+         am_washer = ifelse(str_detect(amenities, regex("\\bwasher|dryer\\b",ignore_case = TRUE)), 1, 0),
+         am_bedroom_stuff = ifelse(str_detect(amenities,regex("\\bextra pillows and blankets|bed linens\\b", ignore_case = TRUE)), 1, 0),
+         am_essentials = ifelse(str_detect(amenities,regex("\\bessentials|hangers|hair dryer|hot wate|iron\\b",ignore_case = T)), 1, 0),
+         am_long_term_stays = ifelse(str_detect(amenities,regex("\\blong term stays allowed|cleaning products\\b",ignore_case = TRUE)), 1, 0),
+         am_patio_balcony = ifelse(str_detect(amenities,regex("\\bprivate patio or balcony|patio or balcony|shared patio or balcony|backyard\\b", ignore_case = TRUE)),1,0),
+         am_parking = ifelse(str_detect(amenities,"\\bparking\\b"),1,0),
+         am_elevator = ifelse(str_detect(amenities,regex("\\belevator\\b", ignore_case = T)),1,0),
+         am_host_attention = ifelse(str_detect(amenities,"\\bHost greets you\\b"),1,0),
+         am_shampoo_bath_stuff = ifelse(str_detect(amenities,regex("\\bshampoo|conditioner|bathroom essentials",ignore_case = TRUE)),1,0),
+         am_bathtub = ifelse(str_detect(amenities,regex("\\bbathtub\\b", ignore_case = TRUE)),1,0),
+         am_smoking_allowed = ifelse(str_detect(amenities,regex("\\bsmoking allowed\\b",ignore_case= TRUE)),1,0),
+         am_pet_friendly = ifelse(str_detect(amenities,regex("\\bpets allowed\\b",ignore_case = TRUE)),1,0),
+         am_fire_security = ifelse(str_detect(amenities,regex("\\bfire extinguisher|smoke alarm|carbon monoxide alarm",ignore_case = TRUE)),1,0)) 
+
+
+#price esta como charcter hay que eliminarle el símbolo pesos y transformar el punto en coma eliminar el .00 de los centavos
+
+df_airbnb <- df_airbnb %>%
+  mutate(price = as.numeric(str_remove_all(price, "[$,]")))
+
+univariate_freq <- function(df, var){
+  if(is.numeric(df[[var]])){
+    df %>% 
+      tabyl({{var}}) %>% 
+      adorn_pct_formatting()
+  } else {
+    df %>% 
+      count({{var}}) %>% 
+      mutate(n = n/sum(n) * 100) %>% 
+      arrange(desc(n)) %>% 
+      adorn_pct_formatting()
+  }
+}
+
+# ver porquue no funciona
+df_airbnb %>% 
+  select(-c(id, name)) %>% 
+  names() %>% 
+  walk(~univariate_freq(df_airbnb, .))
+
+```
+
+#### Analisis de uniariadas
+
+Para una primera descripción del dataset seleccionamos las variables categóricas y hacemos cruce de univariadas
+
+```{r}
+
+rm(univariate_freqs)
+
+univariate_freqs(df_airbnb)
+
+
+
+```
+
+```{r}
+
+```

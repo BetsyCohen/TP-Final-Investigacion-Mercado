@@ -1,0 +1,12 @@
+"0","```r
+# RELACION CON EL INMUEBLE / REGION
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  tabyl(region, tipo_de_relacion_con_el_inmueble) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

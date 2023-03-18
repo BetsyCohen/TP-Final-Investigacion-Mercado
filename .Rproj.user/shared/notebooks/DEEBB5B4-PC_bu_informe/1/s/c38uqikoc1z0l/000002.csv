@@ -1,0 +1,12 @@
+"0","```r
+# FORMALIZACION / TIPO DE GESTION
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\" | registro_subtipo==\"Organización sin espacio\")%>%
+  tabyl(tipo_de_gestion, personeria_rec) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()%>%
+  knitr::kable()
+```"

@@ -1,0 +1,14 @@
+"0","```r
+ggplot(grafico_1, aes(fill=factor(capitales, levels=c(\"1\",\"0\")), y=seleccionadxs, x=region)) + 
+    geom_bar(position=\"fill\", stat=\"identity\", col='black') +
+    scale_fill_manual(name=\"\", values = c(\"#b4beba\", \"#2cb9ee\"), labels = c(\"En ciudades capitales\", \"Fuera de ciudades capitales\")) +
+    scale_y_continuous(labels = scales::percent) + 
+    labs(x=\"REGIÓN\", y=\"PORCENTAJE\", title = \"Distribución porcentual de organizaciones según ubicación. Por región.\") +
+    theme(axis.title.y = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(axis.title.x = element_text(size = 8, face =\"bold\", color = \"dark gray\")) +
+    theme(plot.title = element_text(size = 10, face =\"bold\", color = \"black\")) +
+    theme(legend.position=\"bottom\", legend.direction=\"horizontal\",legend.title = element_blank()) +
+    #theme_classic()+
+    coord_flip()
+
+```"

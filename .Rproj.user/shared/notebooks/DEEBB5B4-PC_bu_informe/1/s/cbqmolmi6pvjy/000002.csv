@@ -1,0 +1,9 @@
+"0","```r
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\" | registro_subtipo==\"Organización sin espacio\") %>%
+  filter(ano_de_creacion_rec==\"masde10anios\" | ano_de_creacion_rec==\"5-10anios\" | ano_de_creacion_rec==\"menosde5anios\")%>%
+  tabyl(ano_de_creacion_rec) %>%
+  arrange(desc(percent), n) %>% 
+  adorn_pct_formatting()%>%
+  knitr::kable()
+```"

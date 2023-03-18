@@ -1,0 +1,11 @@
+"0","```r
+# SETEO EL DIRECTORIO
+
+setwd( \"/Users/magal/OneDrive/Escritorio/PUNTOS\" ) 
+
+# CARGO LA BASE
+
+base <- read_excel(\"C:/Users/magal/OneDrive/Escritorio/PUNTOS/PC_base unificada_2011-2021.xlsx\")
+
+head(base)
+```"

@@ -1,0 +1,23 @@
+"0","```r
+# POLITICAS DE PREVENCION CONTRA VIOLENCIAS DE GENERO
+
+base %>% 
+  filter(registro_subtipo==\"Espacio cultural\") %>%
+  concat.split(split.col =\"el_espacio_cuenta_con\", sep = \" \\| \", structure = \"expanded\",
+               type = \"character\", fill = 0, drop = T, n = T) %>%
+  dplyr::select(starts_with(\"el_espacio_cuenta_con\")) %>%
+  questionr::multi.table(true.codes = 1,digits = 0, freq = TRUE) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(\"el_espacio_cuenta_con_\") %>%
+  arrange(desc(n)) %>%
+  mutate(el_espacio_cuenta_con_ = gsub(\"el_espacio_cuenta_con_\",\"\",el_espacio_cuenta_con_)) %>%
+  adorn_totals() 
+```"
+"1","                                                                               el_espacio_cuenta_con_    n %multi
+                                                  Otras actividades vinculadas a géneros y diversidad  443     64
+                        Actividades de sensibilización para la prevención de las violencias de género  431     62
+ Asesoramiento para la asistencia y el acompañamiento de casos de violencia de género en su comunidad  311     45
+                                    Protocolo de intervención para situaciones de violencia de género  283     41
+                                                                                             No posee  100     14
+                                                                                                Total 1568    226
+"

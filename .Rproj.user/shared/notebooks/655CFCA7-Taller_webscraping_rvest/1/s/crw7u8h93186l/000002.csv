@@ -1,0 +1,6 @@
+"0","```r
+```r
+spotify <- spotify %>% 
+  mutate( Artista = gsub(\by \, \\, Artista), #gsub funciona como un reemplazo
+          Reproducciones = gsub(\
+```"

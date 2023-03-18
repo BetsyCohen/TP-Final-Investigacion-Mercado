@@ -1,0 +1,6 @@
+"0","```r
+grafico_5 <- base %>% 
+  filter(registro_subtipo==\"Espacio cultural\")%>%
+  dplyr::group_by(contexto_en_el_que_se_encuentra_el_espacio_cultural, x_cuenta_con_acceso_a_internet) %>%
+  dplyr::summarise(seleccionadxs = n_distinct(id_bu))
+```"

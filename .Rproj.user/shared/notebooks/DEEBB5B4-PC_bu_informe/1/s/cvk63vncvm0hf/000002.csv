@@ -1,0 +1,11 @@
+"0","```r
+# REGION / CIUDADES CAPITALES
+
+base %>% 
+  tabyl(region, capitales) %>%
+  adorn_percentages(\"row\") %>%
+  adorn_totals(\"col\") %>%
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns() %>%
+  knitr::kable()
+```"

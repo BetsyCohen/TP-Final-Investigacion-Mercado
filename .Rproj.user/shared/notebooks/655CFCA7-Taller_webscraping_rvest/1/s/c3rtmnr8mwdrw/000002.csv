@@ -1,0 +1,12 @@
+"0","```r
+```r
+#fechas <- seq(as.Date(\2017/01/01\), as.Date(\2019/05/31\), by = \day\)
+fechas <- seq(as.Date(\2019/06/08\), as.Date(\2019/06/12\), by = \day\)
+ConcatenarUrl <- function(x){
+  urlCompleta <- paste0(url,x)
+  urlCompleta
+}  
+
+urlFinal <- ConcatenarUrl(fechas)
+```
+```"
