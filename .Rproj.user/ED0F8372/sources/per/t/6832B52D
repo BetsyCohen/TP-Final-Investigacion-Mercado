@@ -3,7 +3,7 @@
     "path": "G:/Mi unidad/MGAIE/13.Estadistica Aplicada a la Investigacion de Mercado/TP Final/TP Final Betsy.qmd",
     "project_path": "TP Final Betsy.qmd",
     "type": "quarto_markdown",
-    "hash": "98332977",
+    "hash": "2149530391",
     "contents": "",
     "dirty": false,
     "created": 1679141203227.0,
@@ -15,19 +15,19 @@
         "tempName": "Untitled2",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "60,340",
-        "scrollLine": "35",
+        "cursorPosition": "461,0",
+        "scrollLine": "454",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
         "rmdVisualModeLocation": "6920:5526.6669921875",
-        "docOutlineSize": "50"
+        "docOutlineSize": "177"
     },
     "folds": "",
-    "lastKnownWriteTime": 1679165869,
+    "lastKnownWriteTime": 1681955713,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1679165869798,
+    "last_content_update": 1681955713720,
     "read_only": false,
     "read_only_alternatives": []
 }

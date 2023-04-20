@@ -3,39 +3,59 @@ title: "TP Final Estadistica aplicada a investigación de mercado"
 author: "Betsy Cohen"
 format:
   html:
-    theme: lux
+    theme: minty
     code-fold: true
-    code-summary: "Mostrar el código"
+    code-summary: "Ver código"
     table-of-contents: true
 editor: visual
+
 ---
+
+```{=html}
+<style>
+#TOC {
+  background: url("https://twitter.com/UNTREF/photo");
+  background-size: 50%;
+  padding-top: 80px !important;
+  background-repeat: no-repeat;
+}
+</style>
+```
 
 ```{r, setup, include=FALSE}
 
-library(tidyverse)
+
+### Librerías operativas
+library(tidyverse) 
 library(janitor)
 library(tidytext)
-library(DT)
+library(scales)
 library(fastDummies)
+
+### Librerías para tablas y gráficos
+library(DT)
+library(gt)
+library(plotly)
+
 
 
 # Bases requeridas:
 df_alojamientos_badata <- read_csv("input/badata_alojamientos_turisticos.csv") 
 df_airbnb <- read.csv("input/listings.csv")
 
-#Parmetros
 
 ```
 
 ## Nuestro caso de estudio
 
-"Angelito" es un viejo hotel de pasajeros que Don Angel, explotó durante los años 50 como hotel de pasajeros y que ahora sus nietos están poniendo en valor para rentar las habitaciones de manera temporal por Airbnb. Ubicado en el epicentro de San Telmo, el espacio espera abrir sus puertas al público en diciembre de 2024 y la primera preocupación de sus nietos es cuales son las principales variables a tener en cuenta para obtener una alta ocupación.
 
 Según los datos abiertos oficiales (BADATA) C.A.B.A. posee 665 alojamientos turísticos registrados de los cuales el 40% corresponden a modelo no tradicionales como hoteles boutique, hostels, aparts y B&B.
 
+
+
 ```{r, warning=FALSE}
 
-knitr::kable(df_alojamientos_badata %>% 
+df_alojamientos_badata %>% 
   mutate("Tipo de alojamiento" = case_when(str_detect(tipo,"estrella")|tipo %in% c("Hotel sindical","Hospedaje") ~ "Hotel tradicional",
                               tipo %in% c("Boutique","Hotel boutique") ~"Hotel boutique",
                               TRUE ~ tipo))%>% 
@@ -43,43 +63,50 @@ knitr::kable(df_alojamientos_badata %>%
   arrange(desc(n)) %>% 
   adorn_totals() %>% 
   adorn_pct_formatting(digits = 0) %>% 
-  as.data.frame(),)
+  as.data.frame() %>% 
+  gt() %>% 
+  tab_header(
+    title = md('**Tipos de alojamiento CABA**')) %>%
+  opt_align_table_header('left') %>%
+  tab_source_note(source_note = "Fuente: BA DATA") %>%
+  opt_stylize(style = 3, color = "pink", add_row_striping = FALSE)
   
 
 
 ```
+
+
+
 
 ```{r, include=FALSE}
 
 rm(df_alojamientos_badata)
 ```
 
+
+"Casa Angelito" es un viejo hotel de pasajeros que Don Angel administró durante los años 50 como hotel de pasajeros y que ahora sus nietos están poniendo en valor para rentar las habitaciones de manera temporal por Airbnb. Ubicado en el epicentro de San Telmo, el espacio espera abrir sus puertas al público en diciembre de 2024. 
+
+Preocupados por comenzar a recuperar la inversión los dueños de  Casa Angelito quieren conocer los principales drivers del mercado para proyectar su propuesta dentro de algún segmento y conocer cuál es el precio al cual deberían lanzarse al mercado para tener la mejor ocupación posible para este segmento.
+
+
+## Metodología propuesta
+
+Primero haremos una limpieza de los datos, separando entre variables cuantitativas (o plausibles de cuantificar y escalar) y otras cualitativas. 
+
+Para conocer los drivers del mercado aplicaremos un Análisis de Componenentes Principales sobre las variables cuantitativas cuyos resultados (componentes) alimentaran un análisis de clusters que nos permitirá conocer los distintos segmentos. 
+
+Por haremos un análisis descriptivo de cada segmento dentro del cual incluiremos una regresión lineal para conocer cuál es el precio máximo que se yuxtapone con la ocupación máxima. 
+
+Como indicador de ocupación tomaremos la variable número de opiniones en el último año `number_of_reviews_ltm` recortando nuestro análisis a las publicaciones que hayan tenido al menos una opinión en el último año (es decir buscaremos el valores de interepción y gradiente que correspondan al MSE más bajo posible).
+
+
+
+## Acerca de la base de datos
 El sitio <http://insideairbnb.com/>. es un proyecto que recopila datos de la plataforma colaborativa de alquileres, con el propósito de realizar un seguimiento del impacto de este tipo de alquiler sobre la vivienda en las principales capitales turísticas del mundo. Si bien existen otras plataformas de alquiler, Airbnb ha logrado posicionarse como una de las principales y es por ello que creemos que es un buen punto de partida.
 
-**En este escrito nos proponemos identificar en esta base de datos cuales son las variables que se asocian a una alta ocupación y cuales son las características de la comptencia directa de Angelito**
-
-Como indicador de ocupación tomamos la variable `number_of_reviews_ltm` que representa la cantidad de comentarios que obtuvo una publicación en el último año (asumimos que las publicaciones que no han tenido ningún comentario en el último no han tenido movimiento y por lo tanto no son una referencia en términos de competencia de mercado).
-
-## Metodología
-
-Teniendo en cuenta que tenemos muchas variables (tanto categóricas como numéricas), vamos a evaluar dos posibles modelos para la selección de las variables (LASSO y Stepwise) y después, de acuerdo a los resultados nos quedaremos con el modelo más preciso. 
-
-Una vez que tengamos estas variables lo utilizaremos como insumo para segmentar las publicaciones y ver cómo se agrupan entre sí con un análisis de cluster (ACA VER SI HACEMOS KMEDIA O KMODE PORQUE SI NOS QUEDAN SELECCIONADAS MUCHAS CATEGORICAS SEGURAMENTE NOS CONVENGA MÁS ESA TÉCNICA. SINO PODEMOS PENSAR EN HACER UN ÁRBOL)
-
-### LASSO
-Para preparar las variables antes de aplicar LASSO, es necesario realizar algunas transformaciones que dependen del tipo de variable:
-
-**Variables numéricas:** es necesario escalarlas para que todas tengan la misma escala y no se vean afectadas por diferencias de magnitud. Esto se puede hacer utilizando una transformación Z-score (o sea, restar la media y dividir por la desviación estándar) o una transformación de escala mínima y máxima (restar el mínimo y dividir por la diferencia entre el máximo y el mínimo).
-
-**Variables categóricas:** es necesario codificar (armarlas como dicotómicas o dummies). Para esto podemos usar la librería fastDummies de R.
 
 
-También es importante tener en cuenta que tendremos que partir el dataset en training y testing antes de aplicar LASSO para evaluar el rendimiento del modelo. Esto es importante para evitar el overfiting o sobreajuste del modelo a los datos  y asegurar que el modelo generalice bien a nuevos datos.
-
-Además, es importante tener en cuenta que las variables deben estar en el mismo conjunto de datos antes de aplicar LASSO. Es decir, si se utilizan diferentes métodos de codificación para diferentes variables categóricas, es necesario asegurarse de que las variables codificadas se unan en un único conjunto de datos antes de aplicar LASSO.
-
-
-## Exploración de la base
+## Extracción y selección de variables iniciales
 
 Insideairbnb provee un dataset con publicaciones, comentarios de publicaciones y calendario de anuncios a diciembre de 2022 y se publican en forma de archivos csv:
 
@@ -95,94 +122,457 @@ Insideairbnb provee un dataset con publicaciones, comentarios de publicaciones y
 
 **barrios.geojson** - Archivo GeoJSON de los barrios
 
-Se puede encontrar una copia de los datos en Inside Airbnb
+Se puede encontrar una copia de los datos en el sitio Inside Airbnb  <http://insideairbnb.com/>
+
+
+
+## Limpieza 
 
 Una inspección rápida de los archivos reveló que tanto la la información contenida en el archivo de calendario como de resumenes ya está presente en los detalles de los avisos (listing), por lo que los descartamos y nos quedamos solo con el de anuncions (listing_detals.csv).
 
-La tabla de publicaciones (listing) muestra un total de 20085 avisos para las cuales hay 75 variables.
-
-```{r}
-skimr::skim(df_airbnb)
+```{r, echo=FALSE}
+paste ("La tabla de publicaciones (listing) muestra un total de",nrow(df_airbnb),"para las cuales hay",ncol(df_airbnb),"variables")
 
 ```
 
-Observamos cada variable para ver qué es y si nos sirven comparando con un diccionario de referencia que tiene el sitio el cual traducimos a continuación y sobre el cual anotamos algunas observaciones para seguir trabajando en la etapa de limpieza
-
-```{r}
-dicc_var<- readxl::read_xlsx("input/ldc.xlsx")
-DT::datatable(dicc_var,
-              options = list(pageLength = 10, scrollY = "700px"))
-
-
-```
-
-El dataset como vemos tiene muchas variables que de por sí no nos sirven para la segementación en función de la ocupación pero que podrían ser de utilidad luego para un análisis más cualitativo así que las separamos y las dejamos indicadas en dos vectores para ulteriores análisis.
-
-```{r}
-# vector con las variables seleccionadas
-variables_seleccionadas <- c("id","name","number_of_reviews_ltm","host_id","host_response_time","host_response_rate","host_acceptance_rate","host_is_superhost","host_has_profile_pic","host_identity_verified","neighbourhood_cleansed","latitude","longitude","room_type","accommodates","bathrooms_text","bedrooms","beds","amenities","price","review_scores_rating","review_scores_accuracy","review_scores_cleanliness","review_scores_checkin","review_scores_communication","review_scores_location","review_scores_value","instant_bookable","reviews_per_month")
-
-
-# vector con otras variables que serían interesantes en un ulterior analisis con NLP (usarlas para hacer nubes de palabrtas una vez que están ya hechos los clusters, se une todo por el ID de la publicación o del host segun coorresponda a la tabla)
-variables_nlp <- c("description","neighborhood_overview")
-
-# Filtrar columnas seleccionadas
+Vamos a trabajar con aquellas publicaciones que han tenido al menos una review en el último año 
+```{r,echo=FALSE}
 df_airbnb <- df_airbnb %>% 
-  select(all_of(variables_seleccionadas))
+  filter(number_of_reviews_ltm >0) 
 
-#Check formato
-glimpse(df_airbnb)
+
+paste("Por lo que la base con la que iniciamos tiene",nrow(df_airbnb),"publicaciones")
 
 ```
 
-### Transformación de variables
+### Revisión de NA y filtrado de casos por fuera del objetivo
 
-Trabajamos en la transformación de variables
+Como tenemos variables de tipo character donde los NA podrían estar "ocultos" en tanto se registren como NA character, creamos una función para visualizarlos
 
--   La variable host response time no tiene un criterio cuantitativo por lo cual la dejamos como categórica
--   Host responde rate y host acceptance rate las corregimos y la transformamos en numérica como un índice entre 0 y 1
+```{r}
+na_counts <- data.frame(column_name = character(),
+                        na_count = numeric())
+
+for (col in names(df_airbnb)) {
+  if (class(df_airbnb[[col]]) == "character") {
+    na_counts <- na_counts %>%
+      add_row(column_name = col,
+              na_count = sum(df_airbnb[[col]] == "N/A"))
+  } else {
+    na_counts <- na_counts %>%
+      add_row(column_name = col,
+              na_count = sum(is.na(df_airbnb[[col]])))
+  }
+}
+
+
+
+
+plot_ly(na_counts, x = ~column_name, y = ~na_count, type = "scatter") %>% 
+  layout(title = "Valores perdidos",
+         xaxis = list(title = "Variable"),
+         yaxis = list(title = "Cantidad de N/A"))
+
+```
+
+
+A excepción de la variable bathroom donde todos los casos aparecen como NA por lo que no queda otro remedio que descartarla y reconstruirla a partir de bathrooms_text, le damos tratamiento a cada una de las variables con NA. Las variables calendar_update y neighbourhood_group_cleansed no son de nuestro interés por lo que no afectan el analisis
+
+
+#### Imputación de NA's
+
+::: {.panel-tabset}
+
+#### bedrooms
+
+Observamos los tipos de propiedad y en todos los casos pareciera referir a que el espacio de habitación para dormir sería el valor 1 ya que todos son monoambientes/ loft o habitaciones privadas dentro de un hogar por lo cual se corresponde el espacio para dormir con todo el lugar rentado.
+
+
+```{r}
+df_airbnb %>% 
+  filter(is.na(bedrooms)) %>% 
+  count(property_type) %>% 
+  gt()
+```
+
+```{r}
+df_airbnb$bedrooms <- ifelse(is.na(df_airbnb$bedrooms),1,df_airbnb$bedrooms)
+
+df_airbnb %>% 
+  plot_ly(x = ~bedrooms, type = "histogram", marker = list(color = "#c18dc7") ) %>% 
+  layout(title = "Distribución de la variable bedrooms")
+
+```
+
+
+
+#### beds
+
+La mayoría de los avisos que tienen NA en la cantidad de camas pueden alojar hasta 2 personas porlo que se presupone que tienen una cama
+
+```{r}
+df_airbnb %>% 
+  filter(is.na(beds)) %>% 
+  tabyl(accommodates) %>% 
+  adorn_totals()
+```
+El resto de las unidades también parecen ser mayormente monoamebientes por lo que en todos los casos se imputa 1 cama
+```{r}
+
+df_airbnb %>% 
+  filter(is.na(beds)) %>% 
+  filter(accommodates > 2) %>% 
+  tabyl(property_type) %>% 
+  adorn_totals()
+
+```
+```{r}
+
+df_airbnb$beds <- ifelse(is.na(df_airbnb$beds),1,df_airbnb$beds)
+
+df_airbnb %>% 
+  plot_ly(x = ~beds, type = "histogram", marker = list(color = "#c18dc7")) %>% 
+  layout(title = "Distribución de la variable beds",
+         xaxis = list(title = "beds"),
+         yaxis = list(title = "Count"))
+
+
+```
+
+
+
+#### host_acceptance_rate
+
+El índice de aceptación mide la frecuencia con la que el anfitrión acepta o rechaza reservas y toma en cuenta los valores del último año. 
+Una hipotesis es que el anfitrión no se encuentre activo y no esté aceptando reservas, o lo que podríamos describir como un anfitrión fantasma, estos podrían ser anfitriones antiguos.
+Como vemos en este histograma la mayoría son anteriores a 2020.
+
+
+```{r}
+
+df_airbnb %>% 
+  filter(host_acceptance_rate == "N/A") %>% 
+  mutate(host_since = as.Date(host_since, format = "%Y-%m-%d")) %>% 
+  plot_ly(x = ~host_since) 
+  
+  
+
+```
+
+
+Siguiendo esta hipotesis eliminamos los casos que tienen valores nulos en la taza de aceptación y que son anfitriones con una antigüedad mayor al año y les asignamos el valor 0% (41 casos)
+
 
 ```{r}
 
 df_airbnb <- df_airbnb %>% 
-  mutate(host_response_time = factor(host_response_time, 
-                                     levels = c("within an hour","within a few hours","within a day","a few days or more","N/A"),
-                                     label = c("within an hour","within a few hours","within a day","a few days or more","N/A"),
-                                     ordered = T),
-           host_response_rate = str_remove_all(host_response_rate,"[%N/A]"),
-           host_response_rate = as.numeric(host_response_rate)/100,
-           host_acceptance_rate = str_remove_all(host_acceptance_rate,"[%N/A]"),
-           host_acceptance_rate = as.numeric(host_acceptance_rate)/100)
+  filter(!host_acceptance_rate == "N/A" | year(as.Date(host_since)) >= 2022) %>% 
+  mutate(host_acceptance_rate = ifelse(host_acceptance_rate == "N/A","0%",host_acceptance_rate)) 
+
 ```
 
--   Baños es una variable de texto que separamos en tipo y cantidad
-Como los tipos de baño quedaban en 6 categorías que no tenían demasiado sentido los separamos en una variable dicotómica de si el baño es o no privado y los que eran NA los imputamos como privados o compartidos con el mismo criterio
+
+#### host_response_rate y host_response_time
+Curiosamente estas variables tienen exactamente la misma cantidad de nulos (342 casos), y en una tabla de contingencia vemos que efectivamente coinciden, es decir, cuando un anfitrión tiene valores nulos en el tiempo de respuesta no tiene valores en su ratio de respuesta por lo que es muy probable que airbnb esté utilizando este valor para su calculo. Vemos incluso que aquellos que tenian valor nulo pero que tuvieron alta en el ultimo año son anfitriones que al menos se habían tomado unos días pero daban alguna respuesta.
+Queda entonces preguntarnos ¿Estos anfitriones efectivamente estan aceptando reservas o son también anfitriones "fantsama"? para ello obvservamos estos casos a la luz de la ultima review
 
 ```{r}
 
-# separar el tipo y cantidad 
-df_airbnb <- df_airbnb %>%
+df_airbnb %>% 
+  filter(host_response_rate == "N/A" | host_response_rate == "0%") %>% 
+  tabyl(host_response_rate,host_response_time) %>% 
+  adorn_title()
+
+```
+La distribución no parece indicar un patrón temporal claro en el cual estos anfitriones hayan egresado totalmente del sistema (más en un contexto en el cual Airbnb comienza a incorporar long-term stays tras la pandemia) por lo que decidimos asignarles las categorías mínimas de la variable en cada caso 
+
+
+```{r}
+
+df_airbnb %>% 
+  filter(host_response_rate == "N/A" & host_response_time =="N/A" ) %>% 
+  mutate(last_review = as.Date(last_review, format = "%Y-%m-%d")) %>% 
+  plot_ly(x = ~last_review) %>% 
+  layout(title = "Ultima opinión recibida entre los host sin tiempo ni ratio de respuestas")
+
+```
+
+```{r}
+
+df_airbnb <- df_airbnb %>% 
+  mutate(host_response_rate = ifelse(host_response_rate == "N/A","0%",host_response_rate),
+         host_response_time = ifelse(host_response_time =="N/A","a few days or more",host_response_time))
+
+```
+
+
+:::
+
+```{r}
+
+```
+
+
+### Creación de variable auxiliar "review_l6m"
+
+
+Como indicador de actividad agrego una variable booleana que separa a aquellos que tuvieron una review en los últimos 6 meses (review_l6m) ya que permitiría identificar a los que tuvieron ocupación en los úlrtimos 6 meses (es más seguro que esten activos) ya que este es el criterio que inicialmente sugieren los creadores del sitio InsideAirbnb
+
+```{r}
+
+df_airbnb <-df_airbnb %>%
+    mutate(review_l6m = ifelse(as.Date(last_review)<as.Date("2022-07-01"),0,1) )
+
+
+
+```
+
+
+### Separación en distintas tablas por tipo variable/ uso analítico
+
+Armamos varias tablas en función de diferentes tipos de variables que nos serviran para distintos tipos de análisis:
+
+cols_pca: son las variables cuantitativas o plausibles de cuantificar que utilizaremos en el pca
+cols_fct: son variables dicotómicas y factoriales que nos serviran para compreder mejor los clusters
+cols_npl: descripciones con textos largos que nos permiten armar nubes de palabras y ver si hay diferencias en las formas en que se construyen los distintos tipos de anuncios
+cols_geo: latitud y longitud que nos permiten situar goegráficamente las publicaciones
+
+
+```{r}
+# Variables para PCA
+cols_pca <- c("id","number_of_reviews_ltm","host_response_time","host_response_rate","host_acceptance_rate","accommodates","bedrooms","beds","amenities","price","review_scores_rating","review_scores_accuracy","review_scores_cleanliness","review_scores_checkin","review_scores_communication","review_scores_location","review_scores_value","instant_bookable","reviews_per_month")
+
+# Variables factoriales
+cols_fct <- c("id","review_l6m","host_is_superhost","host_has_profile_pic","host_identity_verified","neighbourhood_cleansed","room_type","bathrooms_text")
+
+# Variables nube de palabras
+cols_wc <- c("id","name","description","neighborhood_overview")
+
+# Variables geo
+cols_geo <- c("id","latitude","longitude")
+
+
+# Creación de tablas
+df_input_pca <- df_airbnb  %>% select(all_of(cols_pca))
+df_fct <- df_airbnb  %>% select(all_of(cols_fct))
+df_wc <- df_airbnb %>% select(all_of(cols_wc))
+df_geo <- df_airbnb %>% select(all_of(cols_geo))
+
+rm(cols_pca,cols_fct,cols_wc,cols_geo)
+
+```
+
+#### Limpieza y escalado de bases para PCA
+
+##### Host response time 
+
+La varaible `host_response_time` no tiene un criterio cuantitativo por lo cual le damos un puntaje a entre 0 y 1 a sus categorías que son: 
+  
+  
+```{r}
+df_input_pca %>% 
+  count(host_response_time) %>%
+  arrange(desc(n)) %>% 
+  as.data.frame() %>% 
+  gt() %>% 
+  tab_header(
+    title = md('**Tiempo de respuesta del anfitrión**')) %>%
+  opt_align_table_header('left') %>%
+  opt_stylize(style = 3, color = "pink", add_row_striping = FALSE)
+```
+
+En este caso el NA creemos que es importante y lo incuimos dentro del escalado. Es decir en este caso entendemos el NA como la inacción del host y es pore lo tanto un factor de conformación de los drivers de mercado. Además tengamos en cuenta que estas son publicaciones que a pesar del no accionar han obtenido al menos una review en el último año. 
+
+Para generar una guía para el puntaje entre 1 y 5, que exprese lo que sucede de manera más frecuente teniendolo en cuenta como una exigencia del mercado, lo dividimos por las frecuencias relativas tomando el puntaje máximo (5) para la exigencia máxima de "within an hour"
+Como vemos hay una exigencia alta en términos de que en la mayoría de las publicaciones el anfitrión responde antes de los 60 minutos (algo lógico si pensamos a Airbnb como una app móvil).
+
+  
+```{r}
+
+df_input_pca %>%
+  count(host_response_time) %>%
+  mutate(freq_rel = round(n/nrow(df_input_pca),3),
+         host_response_time_scaled = round((freq_rel / max(freq_rel)) * 5, 2)) %>%
+  select(host_response_time, freq_rel, host_response_time_scaled) %>% 
+  arrange(desc(freq_rel)) %>% 
+  as.data.frame() %>% 
+  gt() %>% 
+  tab_header(
+    title = md('**Tiempo de respuesta del anfitrión**')) %>%
+  opt_align_table_header('left') %>%
+  opt_stylize(style = 3, color = "pink", add_row_striping = FALSE)
+
+```
+
+A continuación asignamos los puntajes y unimos el N/A a "a few days or more" por su caracter marginal. Una posible recomendación sería: si no va a responder en en el mismo día, no responda del todo.
+
+```{r}
+
+df_input_pca <- df_input_pca %>% 
+  mutate(host_response_time_scaled = 
+           case_when(
+             host_response_time == "within an hour" ~ 5,
+             host_response_time == "within a few hours" ~ 1.22,
+             host_response_time == "within a day" ~ 0.44,
+             host_response_time %in% c("N/A","a few days or more") ~ 0.20))
+
+df_input_pca %>% 
+tabyl(host_response_time,host_response_time_scaled) %>% 
+  gt() %>% 
+  tab_header(
+    title = md('**Escalado de variable host_response_time**')) %>%
+  opt_align_table_header('left') %>%
+  opt_stylize(style = 3, color = "pink", add_row_striping = FALSE)
+
+```
+
+
+##### Host response and acceptance rate
+
+`host_response_rate` y `host_acceptance_rate` son variables que estan como texto 
+
+```{r}
+sapply(df_input_pca[c("host_response_rate", "host_acceptance_rate")], class)
+```
+
+las transformamos en numérica y las escalamos.
+```{r}
+
+df_input_pca <- df_input_pca %>% 
+  mutate(
+    host_response_rate = as.numeric(str_remove_all(host_response_rate,"[%N/A]"))/100,
+    host_acceptance_rate = as.numeric(str_remove_all(host_acceptance_rate,"[%N/A]"))/100,
+    host_response_rate_scaled = (host_response_rate - min(host_response_rate, na.rm = TRUE)) / 
+                                 (max(host_response_rate, na.rm = TRUE) - min(host_response_rate, na.rm = TRUE)) * 4 + 1,
+    host_acceptance_rate_scaled = (host_acceptance_rate - min(host_acceptance_rate, na.rm = TRUE)) / 
+                                   (max(host_acceptance_rate, na.rm = TRUE) - min(host_acceptance_rate, na.rm = TRUE)) * 4 + 1
+  ) 
+
+
+
+# chequeo cómo quedaron
+# df_input_pca %>% 
+#   plot_ly(x = ~host_response_rate_scaled)
+# 
+# df_input_pca %>% 
+#   plot_ly(x = ~host_acceptance_rate_scaled)
+  
+```
+
+##### Price
+Una de las variables más impostantes que se debe transformar es`price` que esta como charcter. Además hay que eliminarle el símbolo pesos y transformar el punto en coma eliminar el .00 de los centavos.
+Como producto de esta transformación podemos ver la gran disperción que tiene la variable precio
+
+Dado que la página de Aitrbnb y en el mercado los precios están en dolares los pasamos a esta moneda con una cotización aproximada de 400 pesos el dolar. Tomamos la cotización del dolar blue a la fecha en que fueron scrapeados las publicaciones (29-12-2022) (350 pesos)
+
+Incluso de este modo la variable muestra una gran amplitud
+
+```{r}
+
+df_input_pca   <- df_input_pca   %>%
+  mutate(price_US = as.numeric(gsub("[$,]", "",price))/350) 
+
+plot_ly(df_input_pca ,y = ~price_US,type = "box", name = "Publicaciones") %>% 
+  layout(title = "Precios de las publicaciones en US$",
+         yaxis = list(title = "Precio en US$ por noche"))
+
+```
+
+Estos oputliers parecieran estar concentrados (como es lógico), entre los avisos de alquiler de viviendas enteras. 
+
+Como sabemos que el objetivo inicial de "Casa Angelito" va a ser ofrecer habitaciones privadas a modo "hotel boutique" , y como podemos ver los outliers de este segmento de tienden a concentrar por debajo de los 110 dolares la noche. 
+Por ello y para excluir tambi{en aquellos casos excepcionales de viviendas de lujo tomamos la decición de recortar nuestro universo en un tope de este precio.
+
+
+```{r}
+df_airbnb %>% 
+  mutate(price_US = as.numeric(gsub("[$,]", "",price))/350) %>% 
+  plot_ly(x= ~room_type, y = ~price_US,type = "box", name = ~room_type, color = ~room_type) %>% 
+  layout(title = "Precios de las publicaciones en US$ según tipo",
+         yaxis = list(title = "Precio en US$ por noche"))
+```
+
+Dada la gran variabilidad del precio lo que haremos es armar rangos escalados de modo que permitan incluir el precio en el modelo 
+
+```{r}
+
+quantile(df_input_pca$price_US)  
+
+df_input_pca <- df_input_pca %>% 
+  filter(price_US < 100) 
+  
+
+df_input_pca <- df_input_pca %>%
+  mutate(price_US_1_to_5 = ifelse(price_US <= 5, price_US, NA_real_),
+         price_US_5_to_15 = ifelse(price_US > 5 & price_US <= 15, price_US, NA_real_),
+         price_US_15_to_25 = ifelse(price_US > 15 & price_US <= 25, price_US, NA_real_),
+         price_US_25_to_35 = ifelse(price_US > 25 & price_US <= 35, price_US, NA_real_),
+         price_US_35_more = ifelse(price_US > 35, price_US, NA_real_))
+
+
+
+
+```
+
+
+
+```{r}
+
+```
+
+
+#### Limpieza de variables factoriales
+
+##### Tipo y Cantidad de baños
+
+`bathrooms_text`  es una variable de texto que separamos en tipo y cantidad. 
+
+La cantidad la armamos como escalar (tras reemplazar algunos outliers por la media) y el tipo como quedaba en 6 categorías que no tenían demasiado sentido los separamos en una variable dicotómica de si el baño es o no privado y los NA los imputamos como privados o compartidos en función del room_type.
+
+```{r}
+# PASO 1: separar el tipo y cantidad de baños
+df_airbnb_seg <- df_airbnb_seg %>%
   mutate(bathrooms_text = str_replace(bathrooms_text, "Shared half-bath", "1 Shared_half-bath")) %>%
   mutate(bathrooms_text = str_replace(bathrooms_text, "Private half-bath", "1 Private_half-bath")) %>% 
+  mutate(bathrooms_text = str_replace(bathrooms_text,"Half-bath","1 Private_half-bath")) %>% #no especifica si es private o no pero aumo que sí
   separate(bathrooms_text, into = c("num_baths", "bath_type"), sep = " ", fill = "right", remove = F, convert = T) 
 
+summary((df_airbnb_seg$num_baths))
+
+
+# PASO 2: Reemplazar outliers (más de 4 baños) y los 9 casos de NA por la media
+
+# Primero evaluo si este reemplazo no mueve tanto la distribución de la media y como veo que pasa de 1.258 a 1.211 considero que no es tanto 
+# df_airbnb_seg %>% 
+#   mutate(num_baths_ok = ifelse(num_baths>3 | is.na(num_baths),mean(df_airbnb_seg$num_baths,na.rm = T),num_baths )) %>% 
+#   select(num_baths, num_baths_ok) %>% 
+#   summary(num_baths_ok)
+  
+df_airbnb_seg <- df_airbnb_seg %>%
+  mutate(num_baths_ok = ifelse(num_baths>3 | is.na(num_baths),mean(df_airbnb_seg$num_baths,na.rm = T),num_baths ))
+
+# PASO 3: Esacalar num_baths entre 0 y 1
+df_airbnb_seg$num_baths_ok_escalada <- rescale(df_airbnb_seg$num_baths_ok, to = c(0, 1))
+
+
+# Dicotomicas a partir de categorías de bath_type
 # revisamos las categorías que quedan
-# df_airbnb %>% 
+# df_airbnb_seg %>% 
 #   tabyl(bath_type)
 
 # para ver si baths es privado (ya que asumimos que una casa puede tener más de un baño) lo chequeo contra el room_type y efectivamente en la mayoría de los casos son Entire Home/apt
-# df_airbnb %>% 
+# df_airbnb_seg %>% 
 #   filter(bath_type == "baths") %>% 
 #   tabyl(room_type,bath_type) 
   
 
 # Dicotomización de bath a privado(Private) o no privado (Shared) asumiendo que los que tienen más de un baño "baths" también son privados.
-df_airbnb <- df_airbnb %>% 
+df_airbnb_seg <- df_airbnb_seg %>% 
   mutate(bath_type = case_when(bath_type %in% c("bath","baths","private","private","Private_half-bath") ~ "Private",
                                bath_type %in% c("shared","Shared_half-bath") ~ "Shared")) 
 
 # Imputación de NA  segun el tipo de habitacion 
-df_airbnb <- df_airbnb %>% 
+df_airbnb_seg <- df_airbnb_seg %>% 
   mutate(bath_type = case_when(is.na(bath_type) & room_type == "Entire home/apt" ~ "Private",
                                is.na(bath_type) & room_type == "Hotel room" ~ "Private",
                                is.na(bath_type) & room_type == "Private room" ~ "Shared",
@@ -190,38 +580,29 @@ df_airbnb <- df_airbnb %>%
                                TRUE ~ bath_type ))
 
 # Eliminar bathrooms_text
-df_airbnb$bathrooms_text<- NULL  
-
-# chequeamos cómo quedó la variable
-df_airbnb %>% 
-  tabyl(bath_type,room_type) %>% 
-  adorn_percentages("col") %>% 
-  adorn_pct_formatting() %>% 
-  adorn_title("top")
-
-
-
+df_airbnb_seg$bathrooms_text<- NULL  
 
 
 ```
 
--   Amenities esta como una lista de texto entre brakets con una gran variabilidad. la tokenizamos y buscamos los tokens más frecuentes y unimos usando unas regex auqellos tokens que nos pareció que tenía sentido que fueran juntos en una serie de nuevas variables dicotómicas que representan distintos amenities que creemos serían de utilidad a la hora de tomar una decisión y de evaluar como influencia en cada perfil
+##### Amenities
+`amenities` es una variable que está como una lista de texto entre brakets. se tokeniza y se busca los tokens más frecuentes. Con unas regez se unen auqellos tokens que parecen tener sentido en función de la ocupación y el precio. Imprimimos un cuadro con las amenities que hemos creado.
 
 ```{r}
 
-# aramar frecuencia de amenities encontradas para ver cuales podríamos usar
-df_airbnb %>%
-  select(amenities) %>%
-  mutate(amenities = str_replace_all(amenities, "[\\[\\]\"]", "")) %>% # borramos brackets y comillas
-  unnest_tokens(amenity, amenities, token = "regex", pattern = ",\\s*") %>% # Tokeniza y pone un token por fila
-  tabyl(amenity) %>% 
-  arrange(desc(n)) %>% 
-  adorn_pct_formatting()
+# frecuencia de amenities encontradas para ver cuales podríamos usar
+# df_airbnb_seg %>%
+#   select(amenities) %>%
+#   mutate(amenities = str_replace_all(amenities, "[\\[\\]\"]", "")) %>% # borramos brackets y comillas
+#   unnest_tokens(amenity, amenities, token = "regex", pattern = ",\\s*") %>% # Tokeniza y pone un token por fila
+#   tabyl(amenity) %>% 
+#   arrange(desc(n)) %>% 
+#   adorn_pct_formatting()
 
 
-# Basados en estos tokens construimos un set de 19 amenities (como variables dicotómicas) que agrupan varias regex que creemos podrían ser de interés para nuestro cliente.  
+# Basados en estos tokens construimos un set de 19 amenities (como variables dicotómicas) que agrupan varias regex que creemos podrían ser de interés para nuestro cliente respecto de la variable objetivo  
 
-df_airbnb <- df_airbnb %>%
+df_airbnb_seg <- df_airbnb_seg %>%
   mutate(amenities = str_replace_all(amenities, "[\\[\\]\"]", "")) %>% # Eliminar brackets y comillas
   mutate(am_tv = ifelse(str_detect(amenities, regex("\\b(TV|HDTV)\\b", ignore_case = TRUE)), 1, 0),
          am_streaming_serv_chromecast = ifelse(str_detect(amenities, regex("\\b(netflix|amazon|apple tv|disney+|hbo max|chromecast)\\b", ignore_case = TRUE)), 1, 0),
@@ -245,84 +626,59 @@ portable air conditioning\\b", ignore_case = T)), 1, 0),
          am_pet_friendly = ifelse(str_detect(amenities,regex("\\bpets allowed\\b",ignore_case = TRUE)),1,0),
          am_fire_security = ifelse(str_detect(amenities,regex("\\bfire extinguisher|smoke alarm|carbon monoxide alarm",ignore_case = TRUE)),1,0)) 
 
-df_airbnb %>% 
-  select(starts_with("am_")) %>% 
-  questionr::multi.table(true.codes = 1) %>% 
-  as.data.frame() %>% 
+# # impresión de las amenities creadas
+df_airbnb_seg %>%
+  select(starts_with("am_")) %>%
+  questionr::multi.table(true.codes = 1) %>%
+  as.data.frame() %>%
   tibble::rownames_to_column("am_") %>%
   arrange(desc(n)) %>%
   mutate(am_ = gsub("am_","",am_)) %>%
-  rename(amenties = am_) %>% 
-  adorn_totals()
+  rename(amenties = am_) %>%
+  adorn_totals() %>% 
+  gt() %>% 
+  tab_header(
+    title = md('**Amenities en base a tokenización y regex**')) %>%
+  opt_align_table_header('left') %>%
+  tab_source_note(source_note = "Fuente: Elaboración propia en base a datos de InsideAirbnb") %>%
+  opt_stylize(style = 3, color = "pink", add_row_striping = FALSE)
+
+# eliminar amenities original
 
 
+df_airbnb_seg$amenities <- NULL
 ```
 
--   price esta como charcter hay que eliminarle el símbolo pesos y transformar el punto en coma eliminar el .00 de los centavos
 
+##### Instant bookable y neighbourhood_cleansed
+
+- instant_bookable: dicotomizar con 1 o 0 
+- neighbourhood_cleansed: armar como dummie
 
 ```{r}
 
-df_airbnb <- df_airbnb %>%
-  mutate(price = as.numeric(str_remove_all(price, "[$,]")))
+df_airbnb_seg <- df_airbnb_seg %>% 
+  mutate(instant_bookable = ifelse(instant_bookable == "t",1,0))
+
+df_airbnb_seg <- df_airbnb_seg %>% 
+  mutate(neighbourhood_cleansed= as.factor(neighbourhood_cleansed)) 
+
+
+df_airbnb_seg_dummies <- df_airbnb_seg %>% 
+  select(id,neighbourhood_cleansed)
+
+df_airbnb_seg_dummies <- fastDummies::dummy_cols(.data = df_airbnb_seg_dummies, select_columns = c("neighbourhood_cleansed"),remove_selected_columns = T)
+
+df_airbnb_seg <- left_join(df_airbnb_seg,df_airbnb_seg_dummies, by= "id")
+
+rm(df_airbnb_seg_dummies)
 
 ```
 
--   host_acceptance_rate Está como el porcentaje en letras y hay que pasarlo a numérico y escalarlo
-```{r}
 
 
-
-```
-
-
--   dicotomizar con 1 o 0 
-
-```{r}
-"instant_bookable",
-```
-
--   armar como dummies 
-```{r}
-"neighbourhood_cleansed"
-```
-
-
-#### Analisis de uniariadas
-
-Para una primera descripción del dataset seleccionamos las variables categóricas y hacemos cruce de univariadas
-
-```{r}
-
-names(df_airbnb)
-
-# función para correr la tablas de frencuencia en todo el df
-freq_table <- function(data, cols) {
-  freq_list <- list()
-  for (col in cols) {
-    freq <- data %>%
-      select({{ col }}) %>%
-      tabyl({{ col }}) %>%
-      adorn_pct_formatting()
-    freq_list[[col]] <- freq
-  }
-  return(freq_list)
-}
-
-freq_table(df_airbnb,c("property_type","room_type","bath_type"))
-
-freq_table_categ <- function(data) {
-  data %>% 
-    select_if(is.character) %>% 
-    tabyl() %>% 
-    adorn_pct_formatting() %>% 
-    print()
-}
-
-df_airbnb %>% 
-  select_if(is.character) %>% 
-  colnames()
-
-head(df_airbnb$host_about)
-
-```
+## Drivers de mercado: PCA 
+(hacer mención a FMDA para próximos estudios)
+## Segmentos de mercado: cluster analisis
+## Descripción de los clusters y precios
+## Conclusiones
